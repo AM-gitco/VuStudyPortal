@@ -11,11 +11,13 @@ import { otpVerificationSchema, type OTPVerificationData } from "@shared/schema"
 
 interface OTPVerificationFormProps {
   email: string;
+  fromSignup?: boolean;
   onSwitchToLogin: () => void;
+  onSwitchToSignup: () => void;
   onSwitchToForgotPassword: () => void;
 }
 
-export function OTPVerificationForm({ email, onSwitchToLogin, onSwitchToForgotPassword }: OTPVerificationFormProps) {
+export function OTPVerificationForm({ email, fromSignup = false, onSwitchToLogin, onSwitchToSignup, onSwitchToForgotPassword }: OTPVerificationFormProps) {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [timer, setTimer] = useState(300); // 5 minutes
   const [canResend, setCanResend] = useState(false);
@@ -206,11 +208,11 @@ export function OTPVerificationForm({ email, onSwitchToLogin, onSwitchToForgotPa
       {/* Back Button */}
       <div className="mt-6 text-center">
         <button
-          onClick={onSwitchToForgotPassword}
+          onClick={fromSignup ? onSwitchToSignup : onSwitchToForgotPassword}
           className="text-blue-600 hover:text-purple-600 font-semibold transition-colors flex items-center justify-center w-full"
         >
           <ArrowLeft className="mr-2" size={16} />
-          Back to Reset Password
+          {fromSignup ? "Back to Sign Up" : "Back to Reset Password"}
         </button>
       </div>
     </div>

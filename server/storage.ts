@@ -1,4 +1,4 @@
-import { users, otpCodes, type User, type InsertUser, type InsertOtp, type OtpCode } from "@shared/schema";
+import { users, otpCodes, pendingUsers, type User, type InsertUser, type InsertOtp, type OtpCode, type PendingUser, type InsertPendingUser } from "@shared/schema";
 import { eq, and, gt } from "drizzle-orm";
 
 export interface IStorage {
@@ -9,6 +9,11 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<User>): Promise<User | undefined>;
   
+  // Pending user operations
+  createPendingUser(user: InsertPendingUser): Promise<PendingUser>;
+  getPendingUserByEmail(email: string): Promise<PendingUser | undefined>;
+  deletePendingUser(email: string): Promise<void>;
+  
   // OTP operations
   createOtpCode(otp: InsertOtp): Promise<OtpCode>;
   getValidOtpCode(email: string, code: string): Promise<OtpCode | undefined>;
@@ -18,14 +23,18 @@ export interface IStorage {
 
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
+  private pendingUsers: Map<string, PendingUser>;
   private otpCodes: Map<number, OtpCode>;
   private currentUserId: number;
+  private currentPendingUserId: number;
   private currentOtpId: number;
 
   constructor() {
     this.users = new Map();
+    this.pendingUsers = new Map();
     this.otpCodes = new Map();
     this.currentUserId = 1;
+    this.currentPendingUserId = 1;
     this.currentOtpId = 1;
   }
 
@@ -66,6 +75,25 @@ export class MemStorage implements IStorage {
     return updatedUser;
   }
 
+  async createPendingUser(insertPendingUser: InsertPendingUser): Promise<PendingUser> {
+    const id = this.currentPendingUserId++;
+    const pendingUser: PendingUser = {
+      ...insertPendingUser,
+      id,
+      createdAt: new Date(),
+    };
+    this.pendingUsers.set(pendingUser.email, pendingUser);
+    return pendingUser;
+  }
+
+  async getPendingUserByEmail(email: string): Promise<PendingUser | undefined> {
+    return this.pendingUsers.get(email);
+  }
+
+  async deletePendingUser(email: string): Promise<void> {
+    this.pendingUsers.delete(email);
+  }
+
   async createOtpCode(insertOtp: InsertOtp): Promise<OtpCode> {
     const id = this.currentOtpId++;
     const otpCode: OtpCode = {
@@ -98,7 +126,7 @@ export class MemStorage implements IStorage {
 
   async cleanupExpiredOtps(): Promise<void> {
     const now = new Date();
-    for (const [id, otp] of this.otpCodes) {
+    for (const [id, otp] of Array.from(this.otpCodes.entries())) {
       if (otp.expiresAt <= now) {
         this.otpCodes.delete(id);
       }

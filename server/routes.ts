@@ -10,12 +10,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return Math.floor(100000 + Math.random() * 900000).toString();
   };
 
-  // Register new user
+  // Register new user (create pending user and send OTP)
   app.post("/api/auth/signup", async (req, res) => {
     try {
       const userData = insertUserSchema.parse(req.body);
       
-      // Check if user already exists
+      // Check if user already exists in main users table
       const existingUser = await storage.getUserByEmail(userData.email);
       if (existingUser) {
         return res.status(400).json({ message: "User already exists with this email" });
@@ -29,8 +29,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Hash password
       const hashedPassword = await bcrypt.hash(userData.password, 10);
       
-      // Create user
-      const user = await storage.createUser({
+      // Create pending user (not saved to main users table yet)
+      const pendingUser = await storage.createPendingUser({
         ...userData,
         password: hashedPassword,
       });
@@ -41,17 +41,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       expiresAt.setMinutes(expiresAt.getMinutes() + 10); // 10 minutes expiry
 
       await storage.createOtpCode({
-        email: user.email,
+        email: pendingUser.email,
         code: otpCode,
         expiresAt,
       });
 
-      // In a real app, send email with OTP here
-      console.log(`OTP for ${user.email}: ${otpCode}`);
+      // Console-based OTP for development (Bug 3 fix)
+      console.log(`🔐 SIGNUP OTP for ${pendingUser.email}: ${otpCode} (expires in 10 minutes)`);
+      console.log(`📧 Email: ${pendingUser.email}`);
+      console.log(`👤 Full Name: ${pendingUser.fullName}`);
+      console.log(`🆔 Username: ${pendingUser.username}`);
 
       res.status(201).json({ 
-        message: "User created successfully. Please check your email for verification code.",
-        email: user.email 
+        message: "Registration initiated. Please check your email for verification code.",
+        email: pendingUser.email 
       });
     } catch (error: any) {
       if (error.errors) {
@@ -123,8 +126,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         expiresAt,
       });
 
-      // In a real app, send email with OTP here
-      console.log(`Password reset OTP for ${email}: ${otpCode}`);
+      // Console-based OTP for development (Bug 3 fix)
+      console.log(`🔐 PASSWORD RESET OTP for ${email}: ${otpCode} (expires in 10 minutes)`);
 
       res.json({ 
         message: "Password reset code sent to your email",
@@ -138,7 +141,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Verify OTP
+  // Verify OTP and complete user registration
   app.post("/api/auth/verify-otp", async (req, res) => {
     try {
       const { email, code } = otpVerificationSchema.parse(req.body);
@@ -152,13 +155,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Mark OTP as used
       await storage.markOtpAsUsed(otpRecord.id);
 
-      // Update user as verified
-      const user = await storage.getUserByEmail(email);
-      if (user) {
-        await storage.updateUser(user.id, { isVerified: true });
-      }
+      // Check if there's a pending user for this email
+      const pendingUser = await storage.getPendingUserByEmail(email);
+      if (pendingUser) {
+        // Create the actual user from pending user data
+        const user = await storage.createUser({
+          username: pendingUser.username,
+          fullName: pendingUser.fullName,
+          email: pendingUser.email,
+          password: pendingUser.password,
+        });
 
-      res.json({ message: "Email verified successfully" });
+        // Clean up pending user data
+        await storage.deletePendingUser(email);
+
+        console.log(`✅ User registration completed for: ${user.email}`);
+        console.log(`👤 Username: ${user.username}, Full Name: ${user.fullName}`);
+
+        res.json({ 
+          message: "Email verified and registration completed successfully",
+          user: { id: user.id, username: user.username, email: user.email, fullName: user.fullName }
+        });
+      } else {
+        // For existing users (forgot password flow)
+        const user = await storage.getUserByEmail(email);
+        if (user) {
+          await storage.updateUser(user.id, { isVerified: true });
+          res.json({ message: "Email verified successfully" });
+        } else {
+          res.status(404).json({ message: "User not found" });
+        }
+      }
     } catch (error: any) {
       if (error.errors) {
         return res.status(400).json({ message: error.errors[0].message });
@@ -189,8 +216,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         expiresAt,
       });
 
-      // In a real app, send email with OTP here
-      console.log(`Resent OTP for ${email}: ${otpCode}`);
+      // Console-based OTP for development (Bug 3 fix)
+      console.log(`🔐 RESEND OTP for ${email}: ${otpCode} (expires in 10 minutes)`);
 
       res.json({ 
         message: "New verification code sent to your email",

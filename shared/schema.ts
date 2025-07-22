@@ -12,6 +12,15 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const pendingUsers = pgTable("pending_users", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull(),
+  fullName: text("full_name").notNull(),
+  email: text("email").notNull().unique(),
+  password: text("password").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const otpCodes = pgTable("otp_codes", {
   id: serial("id").primaryKey(),
   email: text("email").notNull(),
@@ -59,6 +68,8 @@ export const insertOtpSchema = createInsertSchema(otpCodes).pick({
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+export type PendingUser = typeof pendingUsers.$inferSelect;
+export type InsertPendingUser = typeof pendingUsers.$inferInsert;
 export type LoginData = z.infer<typeof loginSchema>;
 export type ForgotPasswordData = z.infer<typeof forgotPasswordSchema>;
 export type OTPVerificationData = z.infer<typeof otpVerificationSchema>;

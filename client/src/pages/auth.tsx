@@ -11,9 +11,11 @@ type AuthView = "login" | "signup" | "forgotPassword" | "otpVerification";
 export default function AuthPage() {
   const [currentView, setCurrentView] = useState<AuthView>("login");
   const [verificationEmail, setVerificationEmail] = useState("");
+  const [fromSignup, setFromSignup] = useState(false);
 
-  const switchToOTP = (email: string) => {
+  const switchToOTP = (email: string, isFromSignup = false) => {
     setVerificationEmail(email);
+    setFromSignup(isFromSignup);
     setCurrentView("otpVerification");
   };
 
@@ -23,7 +25,7 @@ export default function AuthPage() {
         return (
           <SignupForm
             onSwitchToLogin={() => setCurrentView("login")}
-            onSwitchToOTP={switchToOTP}
+            onSwitchToOTP={(email) => switchToOTP(email, true)}
           />
         );
       case "forgotPassword":
@@ -37,7 +39,9 @@ export default function AuthPage() {
         return (
           <OTPVerificationForm
             email={verificationEmail}
+            fromSignup={fromSignup}
             onSwitchToLogin={() => setCurrentView("login")}
+            onSwitchToSignup={() => setCurrentView("signup")}
             onSwitchToForgotPassword={() => setCurrentView("forgotPassword")}
           />
         );

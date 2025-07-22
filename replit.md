@@ -46,7 +46,7 @@ The application implements a multi-step authentication flow:
 - **Users Table**: Stores user credentials and verification status
 - **OTP Codes Table**: Manages temporary verification codes with expiry
 
-**Storage Implementation**: Currently uses in-memory storage (`MemStorage`) for development, with interface ready for database integration.
+**Storage Implementation**: Uses in-memory storage (`MemStorage`) for development with pending user functionality. Users are temporarily stored in `pendingUsers` table until OTP verification, then moved to main `users` table upon successful verification.
 
 ### UI Components
 Built on shadcn/ui component system providing:
@@ -61,9 +61,16 @@ Built on shadcn/ui component system providing:
 1. User submits registration form
 2. Server validates domain restriction (@vu.edu.pk)
 3. Password hashed using bcrypt
-4. OTP generated and stored (console logged for development)
-5. User enters OTP for verification
-6. Account activated upon successful verification
+4. User data temporarily stored in `pendingUsers` table
+5. OTP generated and displayed in console with clear formatting
+6. User enters OTP for verification
+7. Upon successful OTP verification, user data moves to main `users` table
+8. Account fully activated and ready for login
+
+### Recent Bug Fixes (January 2025)
+- **Fixed OTP Page Navigation**: Back button now shows "Back to Sign Up" when coming from signup flow
+- **Secure Registration Flow**: User data only saved after OTP verification, preventing incomplete registrations
+- **Console-based OTP Display**: OTP codes clearly displayed in console with emojis and user details for development testing
 
 ### API Communication
 - Frontend uses TanStack Query for API state management
