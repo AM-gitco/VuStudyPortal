@@ -132,11 +132,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // For demo purposes, we'll use a simple approach
-      // In production, you'd want proper session management
+      // Get user ID from session (you'll need to implement proper session management)
+      // For now, using a mock approach - in production use proper authentication
+      const userId = req.session?.userId || 1; // This should come from your auth system
+      
+      const updatedUser = await storage.updateUserProfile(userId, degreeProgram, subjects);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Remove password from response
+      const { password, ...userWithoutPassword } = updatedUser;
+      
       res.json({ 
         message: "Profile setup completed successfully",
-        user: { degreeProgram, subjects }
+        user: userWithoutPassword 
       });
     } catch (error) {
       console.error("Error setting up profile:", error);

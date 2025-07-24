@@ -9,6 +9,7 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   createAdminUser(user: Omit<InsertUser, 'email'> & { email: string }): Promise<User>;
   updateUser(id: number, updates: Partial<User>): Promise<User | undefined>;
+  updateUserProfile(userId: number, degreeProgram: string, subjects: string[]): Promise<User | undefined>;
   
   // Pending user operations
   createPendingUser(user: InsertPendingUser): Promise<PendingUser>;
@@ -119,6 +120,8 @@ export class MemStorage implements IStorage {
     return updatedUser;
   }
 
+
+
   async createPendingUser(insertPendingUser: InsertPendingUser): Promise<PendingUser> {
     const id = this.currentPendingUserId++;
     const pendingUser: PendingUser = {
@@ -185,18 +188,8 @@ export class MemStorage implements IStorage {
     }
   }
 
-  async updateUserProfile(id: number, degreeProgram: string, subjects: string[]): Promise<User | undefined> {
-    const user = this.users.get(id);
-    if (user) {
-      const updatedUser = { 
-        ...user, 
-        degreeProgram,
-        subjects
-      };
-      this.users.set(id, updatedUser);
-      return updatedUser;
-    }
-    return undefined;
+  async updateUserProfile(userId: number, degreeProgram: string, subjects: string[]): Promise<User | undefined> {
+    return this.updateUser(userId, { degreeProgram, subjects });
   }
 }
 

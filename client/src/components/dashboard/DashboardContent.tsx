@@ -1,16 +1,12 @@
 import { DashboardHome } from "./pages/DashboardHome";
 import { MySubjects } from "./pages/MySubjects";
 import { UploadArea } from "./pages/UploadArea";
-import { PublicDiscussions } from "./pages/PublicDiscussions";
-import { ImportantAnnouncements } from "./pages/ImportantAnnouncements";
-import { SolutionsPage } from "./pages/SolutionsPage";
-import { AiChat } from "./pages/AiChat";
-import { ExamChat } from "./pages/ExamChat";
-import { BadgesPage } from "./pages/BadgesPage";
-import { SubjectResources } from "./pages/SubjectResources";
-import { AboutUs } from "./pages/AboutUs";
-import { OurTeam } from "./pages/OurTeam";
-import { SettingsPage } from "./pages/SettingsPage";
+import { Solutions } from "./pages/Solutions";
+import { Discussions } from "./pages/Discussions";
+import { Announcements } from "./pages/Announcements";
+import { AIChat } from "./pages/AIChat";
+import { Badges } from "./pages/Badges";
+import { About } from "./pages/About";
 
 interface DashboardContentProps {
   user: any;
@@ -27,25 +23,23 @@ export function DashboardContent({ user, activePage }: DashboardContentProps) {
       case "upload":
         return <UploadArea user={user} />;
       case "discussions":
-        return <PublicDiscussions user={user} />;
+        return <Discussions user={user} />;
       case "announcements":
-        return <ImportantAnnouncements user={user} />;
+        return <Announcements user={user} />;
       case "solutions":
-        return <SolutionsPage user={user} />;
+        return <Solutions user={user} />;
       case "ai-chat":
-        return <AiChat user={user} />;
-      case "exam-chat":
-        return <ExamChat user={user} />;
+        return <AIChat user={user} />;
       case "badges":
-        return <BadgesPage user={user} />;
-      case "resources":
-        return <SubjectResources user={user} />;
+        return <Badges user={user} />;
       case "about":
-        return <AboutUs />;
+        return <About user={user} />;
       case "team":
-        return <OurTeam />;
-      case "settings":
-        return <SettingsPage user={user} />;
+        return <div className="p-8 text-center"><h2 className="text-2xl font-bold">Our Team - Coming Soon</h2></div>;
+      case "exam-chat":
+        return <div className="p-8 text-center"><h2 className="text-2xl font-bold">Exam Chat - Coming Soon</h2></div>;
+      case "resources":
+        return <div className="p-8 text-center"><h2 className="text-2xl font-bold">Subject Resources - Coming Soon</h2></div>;
       default:
         return <DashboardHome user={user} />;
     }
