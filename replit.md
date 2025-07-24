@@ -71,6 +71,10 @@ Built on shadcn/ui component system providing:
 - **Fixed OTP Page Navigation**: Back button now shows "Back to Sign Up" when coming from signup flow
 - **Secure Registration Flow**: User data only saved after OTP verification, preventing incomplete registrations
 - **Console-based OTP Display**: OTP codes clearly displayed in console with emojis and user details for development testing
+- **Admin User System**: Implemented admin account (abdulmannan32519@gmail.com) that bypasses OTP verification
+- **Role-based Authentication**: Admin users login directly, students require @vu.edu.pk emails and OTP verification
+- **Complete Password Reset Flow**: Added forgot password → OTP verification → password reset → login flow
+- **Fixed Login Bug**: Verified users can now login without being redirected to OTP page
 
 ### API Communication
 - Frontend uses TanStack Query for API state management

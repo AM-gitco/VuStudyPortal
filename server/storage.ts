@@ -7,6 +7,7 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  createAdminUser(user: Omit<InsertUser, 'email'> & { email: string }): Promise<User>;
   updateUser(id: number, updates: Partial<User>): Promise<User | undefined>;
   
   // Pending user operations
@@ -17,6 +18,7 @@ export interface IStorage {
   // OTP operations
   createOtpCode(otp: InsertOtp): Promise<OtpCode>;
   getValidOtpCode(email: string, code: string): Promise<OtpCode | undefined>;
+  checkOtpCodeValidity(email: string, code: string): Promise<OtpCode | undefined>;
   markOtpAsUsed(id: number): Promise<void>;
   cleanupExpiredOtps(): Promise<void>;
 }
@@ -36,6 +38,30 @@ export class MemStorage implements IStorage {
     this.currentUserId = 1;
     this.currentPendingUserId = 1;
     this.currentOtpId = 1;
+    
+    // Initialize admin user
+    this.initializeAdminUser();
+  }
+
+  private async initializeAdminUser() {
+    const adminEmail = "abdulmannan32519@gmail.com";
+    const existingAdmin = await this.getUserByEmail(adminEmail);
+    
+    if (!existingAdmin) {
+      const bcrypt = await import("bcrypt");
+      const hashedPassword = await bcrypt.hash("Mannamkhan@786", 10);
+      
+      await this.createAdminUser({
+        username: "admin",
+        fullName: "Admin User",
+        email: adminEmail,
+        password: hashedPassword,
+      });
+      
+      console.log("🔧 Admin user initialized successfully");
+      console.log(`📧 Admin Email: ${adminEmail}`);
+      console.log(`🔑 Admin Password: Mannamkhan@786`);
+    }
   }
 
   async getUser(id: number): Promise<User | undefined> {
@@ -59,7 +85,21 @@ export class MemStorage implements IStorage {
     const user: User = {
       ...insertUser,
       id,
+      role: "student",
       isVerified: false,
+      createdAt: new Date(),
+    };
+    this.users.set(id, user);
+    return user;
+  }
+
+  async createAdminUser(insertUser: Omit<InsertUser, 'email'> & { email: string }): Promise<User> {
+    const id = this.currentUserId++;
+    const user: User = {
+      ...insertUser,
+      id,
+      role: "admin",
+      isVerified: true,
       createdAt: new Date(),
     };
     this.users.set(id, user);
@@ -114,6 +154,14 @@ export class MemStorage implements IStorage {
         otp.code === code && 
         !otp.isUsed && 
         otp.expiresAt > now
+    );
+  }
+
+  async checkOtpCodeValidity(email: string, code: string): Promise<OtpCode | undefined> {
+    // Check OTP validity without marking as used - for password reset validation
+    const now = new Date();
+    return Array.from(this.otpCodes.values()).find(
+      (otp) => otp.email === email && otp.code === code && otp.expiresAt > now,
     );
   }
 

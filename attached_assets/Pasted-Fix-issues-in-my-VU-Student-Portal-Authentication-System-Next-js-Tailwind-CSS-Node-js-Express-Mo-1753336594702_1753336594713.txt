@@ -1,0 +1,92 @@
+Fix issues in my VU Student Portal Authentication System (Next.js, Tailwind CSS, Node.js/Express, MongoDB):
+
+✅ CURRENT STATUS:
+Split-screen UI with login, signup, OTP verification, and forgot password forms.
+
+OTP is sent via email during signup for verification.
+
+Glassmorphism design with beautiful layout and branding.
+
+Frontend is mostly working and styled correctly.
+
+❌ ISSUES TO FIX:
+1. Signup Flow / OTP Bug:
+OTP page says "Back to Reset Password" — ❌ this should be "Back to Signup".
+
+Currently, user data is saved to the database before OTP is verified — ❌
+
+✅ Fix: Only save the user in MongoDB after OTP is verified successfully.
+
+Store isVerified: true only when OTP is correct.
+
+2. Login Flow Bug:
+After a user logs in, it wrongly redirects again to the OTP page — ❌
+
+✅ Fix: If isVerified === true, then login should directly redirect to the dashboard or home page, not OTP.
+
+3. Forgot Password Full Flow:
+Fix and implement:
+
+Enter email → Send OTP → Verify OTP → Show form with:
+
+New Password ✅
+
+Confirm Password ✅
+
+Then redirect to Login after successful password update.
+
+✅ Ensure new password updates securely in database.
+
+4. Admin User Setup:
+✅ Add a default admin account manually into database:
+
+Email: abdulmannan32519@gmail.com
+
+Password: Mannamkhan@786 (hashed)
+
+Role: "admin"
+
+✅ Admin login must bypass OTP flow.
+
+✅ All other users must:
+
+Use VU email only (@vu.edu.pk)
+
+Be marked with role "student" and follow full signup+OTP verification process.
+
+5. Database Requirements:
+Hash passwords using bcrypt ✅
+
+Save the following fields:
+
+email, name, username, password, isVerified, role, etc.
+
+Add passwordResetToken (if needed) for forgot password.
+
+Use token expiry for OTP (e.g. 10 minutes)
+
+🛡️ Security & UX Fixes:
+Don't store passwords in plain text ✅
+
+Use clear alert/toast messages on:
+
+OTP sent
+
+OTP verified
+
+Account created
+
+Login success/failure
+
+Password reset
+
+✅ Final Testing Scenarios:
+
+Admin login using provided credentials works directly.
+
+New user signs up → gets OTP → verifies → logs in.
+
+Verified user logs in without OTP.
+
+Forgot password works as intended.
+

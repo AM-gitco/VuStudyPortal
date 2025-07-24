@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, loginSchema, forgotPasswordSchema, otpVerificationSchema } from "@shared/schema";
+import { insertUserSchema, loginSchema, forgotPasswordSchema, otpVerificationSchema, resetPasswordSchema } from "@shared/schema";
 import bcrypt from "bcrypt";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -81,7 +81,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Invalid email or password" });
       }
 
-      // Check if user is verified
+      // Admin users bypass verification check
+      if (user.role === "admin") {
+        const { password, ...userWithoutPassword } = user;
+        console.log(`✅ Admin login successful for: ${user.email}`);
+        return res.json({ 
+          message: "Admin login successful",
+          user: userWithoutPassword 
+        });
+      }
+
+      // Regular users must verify their email and have VU domain
+      if (!loginData.email.endsWith("@vu.edu.pk")) {
+        return res.status(403).json({ 
+          message: "Only VU students with @vu.edu.pk emails can access this portal"
+        });
+      }
+
       if (!user.isVerified) {
         return res.status(403).json({ 
           message: "Please verify your email before logging in",
@@ -92,6 +108,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Return user data (excluding password)
       const { password, ...userWithoutPassword } = user;
+      console.log(`✅ Student login successful for: ${user.email}`);
       res.json({ 
         message: "Login successful",
         user: userWithoutPassword 
@@ -152,12 +169,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid or expired verification code" });
       }
 
-      // Mark OTP as used
-      await storage.markOtpAsUsed(otpRecord.id);
-
       // Check if there's a pending user for this email
       const pendingUser = await storage.getPendingUserByEmail(email);
       if (pendingUser) {
+        // Mark OTP as used for signup flow
+        await storage.markOtpAsUsed(otpRecord.id);
+
         // Create the actual user from pending user data
         const user = await storage.createUser({
           username: pendingUser.username,
@@ -165,6 +182,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: pendingUser.email,
           password: pendingUser.password,
         });
+
+        // Set user as verified since they completed OTP
+        await storage.updateUser(user.id, { isVerified: true });
 
         // Clean up pending user data
         await storage.deletePendingUser(email);
@@ -177,11 +197,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           user: { id: user.id, username: user.username, email: user.email, fullName: user.fullName }
         });
       } else {
-        // For existing users (forgot password flow)
+        // For existing users (forgot password flow) - don't mark OTP as used yet
         const user = await storage.getUserByEmail(email);
         if (user) {
-          await storage.updateUser(user.id, { isVerified: true });
-          res.json({ message: "Email verified successfully" });
+          res.json({ 
+            message: "OTP verified successfully. You can now reset your password.",
+            canResetPassword: true,
+            email: user.email
+          });
         } else {
           res.status(404).json({ message: "User not found" });
         }
@@ -235,6 +258,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
   setInterval(async () => {
     await storage.cleanupExpiredOtps();
   }, 5 * 60 * 1000); // Every 5 minutes
+
+  // Reset password after OTP verification
+  app.post("/api/auth/reset-password", async (req, res) => {
+    try {
+      const { email, code, newPassword } = resetPasswordSchema.parse(req.body);
+      
+      // Check if OTP is still valid using the method that doesn't require unused status
+      const otpRecord = await storage.checkOtpCodeValidity(email, code);
+      if (!otpRecord) {
+        return res.status(400).json({ message: "Invalid or expired verification code" });
+      }
+
+      // Find user
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Hash new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      
+      // Update user password
+      await storage.updateUser(user.id, { password: hashedPassword });
+
+      // Mark OTP as used
+      await storage.markOtpAsUsed(otpRecord.id);
+
+      console.log(`🔐 Password reset successful for: ${user.email}`);
+
+      res.json({ 
+        message: "Password updated successfully. You can now log in with your new password."
+      });
+    } catch (error: any) {
+      if (error.errors) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;

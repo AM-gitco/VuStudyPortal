@@ -15,9 +15,10 @@ interface OTPVerificationFormProps {
   onSwitchToLogin: () => void;
   onSwitchToSignup: () => void;
   onSwitchToForgotPassword: () => void;
+  onSwitchToResetPassword?: (email: string, code: string) => void;
 }
 
-export function OTPVerificationForm({ email, fromSignup = false, onSwitchToLogin, onSwitchToSignup, onSwitchToForgotPassword }: OTPVerificationFormProps) {
+export function OTPVerificationForm({ email, fromSignup = false, onSwitchToLogin, onSwitchToSignup, onSwitchToForgotPassword, onSwitchToResetPassword }: OTPVerificationFormProps) {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [timer, setTimer] = useState(300); // 5 minutes
   const [canResend, setCanResend] = useState(false);
@@ -56,12 +57,22 @@ export function OTPVerificationForm({ email, fromSignup = false, onSwitchToLogin
       const response = await apiRequest("POST", "/api/auth/verify-otp", data);
       return response.json();
     },
-    onSuccess: () => {
-      toast({
-        title: "Email Verified Successfully",
-        description: "You can now login to your account.",
-      });
-      onSwitchToLogin();
+    onSuccess: (data: any) => {
+      if (data.canResetPassword && !fromSignup) {
+        // This is from forgot password flow - allow user to reset password
+        toast({
+          title: "OTP Verified",
+          description: "Please set your new password.",
+        });
+        onSwitchToResetPassword?.(email, form.getValues("code"));
+      } else {
+        // This is from signup flow - proceed to login
+        toast({
+          title: "Email Verified Successfully",
+          description: "You can now login to your account.",
+        });
+        onSwitchToLogin();
+      }
     },
     onError: (error: any) => {
       toast({

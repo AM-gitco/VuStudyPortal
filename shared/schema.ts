@@ -8,6 +8,7 @@ export const users = pgTable("users", {
   fullName: text("full_name").notNull(),
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
+  role: text("role").notNull().default("student"),
   isVerified: boolean("is_verified").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -43,10 +44,18 @@ export const insertUserSchema = createInsertSchema(users, {
 });
 
 export const loginSchema = z.object({
-  email: z.string().email().refine((email) => email.endsWith("@vu.edu.pk"), {
-    message: "Email must be from @vu.edu.pk domain",
-  }),
+  email: z.string().email(),
   password: z.string().min(1, "Password is required"),
+});
+
+export const resetPasswordSchema = z.object({
+  email: z.string().email(),
+  code: z.string().length(6, "OTP must be 6 digits"),
+  newPassword: z.string().min(8, "Password must be at least 8 characters"),
+  confirmPassword: z.string().min(8, "Password must be at least 8 characters"),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
 });
 
 export const forgotPasswordSchema = z.object({
@@ -72,6 +81,7 @@ export type PendingUser = typeof pendingUsers.$inferSelect;
 export type InsertPendingUser = typeof pendingUsers.$inferInsert;
 export type LoginData = z.infer<typeof loginSchema>;
 export type ForgotPasswordData = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordData = z.infer<typeof resetPasswordSchema>;
 export type OTPVerificationData = z.infer<typeof otpVerificationSchema>;
 export type InsertOtp = z.infer<typeof insertOtpSchema>;
 export type OtpCode = typeof otpCodes.$inferSelect;
