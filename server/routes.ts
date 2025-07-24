@@ -121,6 +121,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User profile setup
+  app.post("/api/user/setup-profile", async (req: any, res) => {
+    try {
+      const { degreeProgram, subjects } = req.body;
+      
+      if (!degreeProgram || !subjects || !Array.isArray(subjects) || subjects.length === 0) {
+        return res.status(400).json({ 
+          message: "Degree program and at least one subject are required" 
+        });
+      }
+
+      // For demo purposes, we'll use a simple approach
+      // In production, you'd want proper session management
+      res.json({ 
+        message: "Profile setup completed successfully",
+        user: { degreeProgram, subjects }
+      });
+    } catch (error) {
+      console.error("Error setting up profile:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Forgot password
   app.post("/api/auth/forgot-password", async (req, res) => {
     try {

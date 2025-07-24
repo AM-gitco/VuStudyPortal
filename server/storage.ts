@@ -87,6 +87,8 @@ export class MemStorage implements IStorage {
       id,
       role: "student",
       isVerified: false,
+      degreeProgram: null,
+      subjects: null,
       createdAt: new Date(),
     };
     this.users.set(id, user);
@@ -100,6 +102,8 @@ export class MemStorage implements IStorage {
       id,
       role: "admin",
       isVerified: true,
+      degreeProgram: null,
+      subjects: null,
       createdAt: new Date(),
     };
     this.users.set(id, user);
@@ -179,6 +183,20 @@ export class MemStorage implements IStorage {
         this.otpCodes.delete(id);
       }
     }
+  }
+
+  async updateUserProfile(id: number, degreeProgram: string, subjects: string[]): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (user) {
+      const updatedUser = { 
+        ...user, 
+        degreeProgram,
+        subjects
+      };
+      this.users.set(id, updatedUser);
+      return updatedUser;
+    }
+    return undefined;
   }
 }
 
