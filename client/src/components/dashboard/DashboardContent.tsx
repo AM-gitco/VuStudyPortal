@@ -7,6 +7,7 @@ import { Announcements } from "./pages/Announcements";
 import { AIChat } from "./pages/AIChat";
 import { Badges } from "./pages/Badges";
 import { About } from "./pages/About";
+import { SettingsPage } from "./pages/SettingsPage";
 
 interface DashboardContentProps {
   user: any;
@@ -34,6 +35,8 @@ export function DashboardContent({ user, activePage }: DashboardContentProps) {
         return <Badges user={user} />;
       case "about":
         return <About user={user} />;
+      case "settings":
+        return <SettingsPage user={user} />;
       case "team":
         return <div className="p-8 text-center"><h2 className="text-2xl font-bold">Our Team - Coming Soon</h2></div>;
       case "exam-chat":

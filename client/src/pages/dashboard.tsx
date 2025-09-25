@@ -27,7 +27,8 @@ export default function Dashboard() {
   }
 
   // Check if user needs to set up their profile (degree and subjects)
-  const needsSetup = !user?.degreeProgram || !user?.subjects?.length;
+  // Admin users bypass setup profile requirement
+  const needsSetup = user?.role !== "admin" && (!user?.degreeProgram || !user?.subjects?.length);
 
   if (needsSetup) {
     return <SetupProfile user={user} />;

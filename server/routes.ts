@@ -83,6 +83,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Admin users bypass verification check
       if (user.role === "admin") {
+        (req.session as any).userId = user.id;
         const { password, ...userWithoutPassword } = user;
         console.log(`✅ Admin login successful for: ${user.email}`);
         return res.json({ 
@@ -106,6 +107,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Create session for regular users
+      (req.session as any).userId = user.id;
+      
       // Return user data (excluding password)
       const { password, ...userWithoutPassword } = user;
       console.log(`✅ Student login successful for: ${user.email}`);
@@ -132,9 +136,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Get user ID from session (you'll need to implement proper session management)
-      // For now, using a mock approach - in production use proper authentication
-      const userId = req.session?.userId || 1; // This should come from your auth system
+      // Get user ID from session
+      const userId = (req.session as any)?.userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
       
       const updatedUser = await storage.updateUserProfile(userId, degreeProgram, subjects);
       
@@ -330,6 +336,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.status(500).json({ message: "Internal server error" });
     }
+  });
+
+  // Get current authenticated user
+  app.get("/api/auth/user", async (req: any, res) => {
+    try {
+      if (!(req.session as any)?.userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const user = await storage.getUser((req.session as any).userId);
+      if (!user) {
+        req.session.destroy(() => {});
+        return res.status(401).json({ message: "User not found" });
+      }
+
+      // Return user data (excluding password)
+      const { password, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Logout user
+  app.post("/api/auth/logout", async (req: any, res) => {
+    req.session.destroy((err: any) => {
+      if (err) {
+        return res.status(500).json({ message: "Could not log out" });
+      }
+      res.json({ message: "Logged out successfully" });
+    });
   });
 
   const httpServer = createServer(app);

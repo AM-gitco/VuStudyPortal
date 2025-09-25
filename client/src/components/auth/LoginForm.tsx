@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,7 @@ interface LoginFormProps {
 export function LoginForm({ onSwitchToSignup, onSwitchToForgotPassword, onSwitchToOTP }: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const form = useForm<LoginData>({
     resolver: zodResolver(loginSchema),
@@ -38,7 +39,8 @@ export function LoginForm({ onSwitchToSignup, onSwitchToForgotPassword, onSwitch
         title: "Login Successful",
         description: "Welcome to VU Portal!",
       });
-      // In a real app, redirect to dashboard
+      // Invalidate the user query to trigger re-fetch and update auth state
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       console.log("Login successful:", data);
     },
     onError: (error: any) => {

@@ -49,6 +49,7 @@ export function Sidebar({ user, activePage, onPageChange }: SidebarProps) {
     { id: "resources", label: "Subject Resources", icon: Library },
     { id: "about", label: "About Us / Our Process", icon: Info },
     { id: "team", label: "Our Team & Join Community", icon: Users },
+    { id: "settings", label: "Settings", icon: Settings },
   ];
 
   const handleLogout = async () => {
