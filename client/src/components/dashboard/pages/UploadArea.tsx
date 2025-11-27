@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
-import { Upload, FileText, Link, Send, AlertCircle, Clock, CheckCircle, XCircle } from "lucide-react";
+import { Upload, FileText, Link, Send, AlertCircle, Clock, CheckCircle, XCircle, X } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -38,6 +38,8 @@ const uploadTypes = [
 
 export function UploadArea({ user }: { user: any }) {
   const [activeTab, setActiveTab] = useState("text");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -217,19 +219,104 @@ export function UploadArea({ user }: { user: any }) {
                   </TabsList>
 
                   <TabsContent value="file" className="space-y-4">
-                    <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center hover:border-blue-500 transition-colors cursor-pointer" data-testid="file-upload-area">
-                      <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                      <p className="text-gray-600 dark:text-gray-300 mb-2 font-medium">
-                        Drag and drop your file here, or click to browse
-                      </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Supported formats: PDF, DOC, DOCX, PNG, JPG (Max 10MB)
-                      </p>
-                      <Button type="button" variant="outline" className="mt-4" data-testid="button-browse-files">
-                        <Upload className="mr-2" size={16} />
-                        Choose File
-                      </Button>
-                    </div>
+                    {selectedFile ? (
+                      <div className="border-2 border-dashed border-green-300 dark:border-green-600 rounded-lg p-8 text-center bg-green-50 dark:bg-green-900/20">
+                        <div className="flex items-center justify-center gap-3 mb-4">
+                          <FileText className="h-12 w-12 text-green-600" />
+                          <div className="text-left">
+                            <p className="font-semibold text-gray-900 dark:text-white">{selectedFile.name}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 justify-center">
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            onClick={() => fileInputRef.current?.click()}
+                            data-testid="button-change-file"
+                          >
+                            <Upload className="mr-2" size={16} />
+                            Change File
+                          </Button>
+                          <Button 
+                            type="button" 
+                            variant="destructive" 
+                            onClick={() => setSelectedFile(null)}
+                            data-testid="button-remove-file"
+                          >
+                            <X className="mr-2" size={16} />
+                            Remove
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div 
+                        className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center hover:border-blue-500 transition-colors cursor-pointer"
+                        onClick={() => fileInputRef.current?.click()}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.currentTarget.classList.add('border-blue-500');
+                        }}
+                        onDragLeave={(e) => {
+                          e.currentTarget.classList.remove('border-blue-500');
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          e.currentTarget.classList.remove('border-blue-500');
+                          const files = e.dataTransfer.files;
+                          if (files.length > 0) {
+                            const file = files[0];
+                            const maxSize = 10 * 1024 * 1024;
+                            if (file.size > maxSize) {
+                              toast({
+                                title: "File too large",
+                                description: "Maximum file size is 10MB",
+                                variant: "destructive",
+                              });
+                            } else {
+                              setSelectedFile(file);
+                            }
+                          }
+                        }}
+                        data-testid="file-upload-area"
+                      >
+                        <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                        <p className="text-gray-600 dark:text-gray-300 mb-2 font-medium">
+                          Drag and drop your file here, or click to browse
+                        </p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          Supported formats: PDF, DOC, DOCX, PNG, JPG (Max 10MB)
+                        </p>
+                        <Button type="button" variant="outline" className="mt-4" data-testid="button-browse-files">
+                          <Upload className="mr-2" size={16} />
+                          Choose File
+                        </Button>
+                      </div>
+                    )}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      hidden
+                      accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const maxSize = 10 * 1024 * 1024;
+                          if (file.size > maxSize) {
+                            toast({
+                              title: "File too large",
+                              description: "Maximum file size is 10MB",
+                              variant: "destructive",
+                            });
+                          } else {
+                            setSelectedFile(file);
+                          }
+                        }
+                      }}
+                      data-testid="hidden-file-input"
+                    />
                   </TabsContent>
 
                   <TabsContent value="text">
