@@ -42,9 +42,20 @@ export function AIChat({ user }: { user: any }) {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const [isUserAtBottom, setIsUserAtBottom] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    if (isUserAtBottom) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isLoading, isUserAtBottom]);
 
   const handleNewSession = () => {
     const newSession: ChatSession = {
@@ -96,18 +107,11 @@ export function AIChat({ user }: { user: any }) {
     setSessions(sessions.map(s => s.id === currentSessionId ? { ...s, messages } : s));
   }, [messages]);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, isLoading]);
-
   const handleScroll = (e: any) => {
     const container = e.target;
     const isBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
     setShowScrollButton(!isBottom);
+    setIsUserAtBottom(isBottom);
   };
 
   const handleSendMessage = async () => {
