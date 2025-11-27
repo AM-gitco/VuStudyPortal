@@ -8,17 +8,21 @@ import { AIChat } from "./pages/AIChat";
 import { Badges } from "./pages/Badges";
 import { About } from "./pages/About";
 import { SettingsPage } from "./pages/SettingsPage";
+import { OurTeam } from "./pages/OurTeam";
+import { SubjectResources } from "./pages/SubjectResources";
+import { AdminPanel } from "./pages/AdminPanel";
 
 interface DashboardContentProps {
   user: any;
   activePage: string;
+  onPageChange: (page: string) => void;
 }
 
-export function DashboardContent({ user, activePage }: DashboardContentProps) {
+export function DashboardContent({ user, activePage, onPageChange }: DashboardContentProps) {
   const renderPage = () => {
     switch (activePage) {
       case "dashboard":
-        return <DashboardHome user={user} />;
+        return <DashboardHome user={user} onPageChange={onPageChange} />;
       case "subjects":
         return <MySubjects user={user} />;
       case "upload":
@@ -38,21 +42,19 @@ export function DashboardContent({ user, activePage }: DashboardContentProps) {
       case "settings":
         return <SettingsPage user={user} />;
       case "team":
-        return <div className="p-8 text-center"><h2 className="text-2xl font-bold">Our Team - Coming Soon</h2></div>;
-      case "exam-chat":
-        return <div className="p-8 text-center"><h2 className="text-2xl font-bold">Exam Chat - Coming Soon</h2></div>;
+        return <OurTeam user={user} />;
       case "resources":
-        return <div className="p-8 text-center"><h2 className="text-2xl font-bold">Subject Resources - Coming Soon</h2></div>;
+        return <SubjectResources user={user} />;
+      case "admin":
+        return user?.role === 'admin' ? <AdminPanel user={user} /> : <DashboardHome user={user} onPageChange={onPageChange} />;
       default:
-        return <DashboardHome user={user} />;
+        return <DashboardHome user={user} onPageChange={onPageChange} />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="p-6">
-        {renderPage()}
-      </div>
+    <div className="min-h-[calc(100vh-4rem)]">
+      {renderPage()}
     </div>
   );
 }
