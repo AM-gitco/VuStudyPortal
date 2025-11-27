@@ -204,9 +204,9 @@ export function AIChat({ user }: { user: any }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Chat Area */}
-        <div className="lg:col-span-2 flex flex-col">
+      <div className="flex flex-col gap-6">
+        {/* Main Chat Area - Full Width */}
+        <div className="flex flex-col">
           {/* Chat Container */}
           <Card className="flex-1 flex flex-col shadow-2xl border-0 overflow-hidden bg-white dark:bg-gray-900/50 backdrop-blur transition-all hover:shadow-3xl duration-300">
             {/* Enhanced Chat Header with Dropdown */}
@@ -419,10 +419,10 @@ export function AIChat({ user }: { user: any }) {
           </Card>
         </div>
 
-        {/* Enhanced Right Sidebar */}
-        <div className="space-y-6 flex flex-col">
+        {/* Bottom Section - Quick Questions, Capabilities, Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Quick Questions Card */}
-          <Card className="shadow-xl border-0 bg-white dark:bg-gray-900/50 backdrop-blur overflow-hidden hover:shadow-2xl hover:scale-105 transition-all duration-300">
+          <Card className="shadow-xl border-0 bg-white dark:bg-gray-900/50 backdrop-blur overflow-hidden hover:shadow-2xl transition-all duration-300 lg:col-span-2">
             <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white pb-3">
               <CardTitle className="flex items-center gap-3 text-xl font-bold">
                 <div className="p-2 bg-white/20 rounded-lg">
@@ -454,36 +454,32 @@ export function AIChat({ user }: { user: any }) {
           </Card>
 
           {/* AI Capabilities Grid */}
-          <div className="space-y-3">
-            <h3 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2 px-2">
-              <div className="p-2 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg">
-                <Zap className="w-4 h-4 text-white" />
-              </div>
-              AI Capabilities
-            </h3>
-            <div className="grid grid-cols-2 gap-3">
-              {capabilities.map((cap, index) => {
-                const Icon = cap.icon;
-                return (
-                  <Card 
-                    key={index} 
-                    className={`border-0 shadow-lg hover:shadow-2xl hover:scale-110 transition-all duration-300 cursor-pointer group overflow-hidden bg-white dark:bg-gray-800/50 backdrop-blur ${cap.bgColor}`}
-                  >
-                    <div className={`h-1.5 w-full bg-gradient-to-r ${cap.color}`}></div>
-                    <CardContent className="p-4 text-center">
-                      <div className="flex justify-center mb-3 group-hover:scale-125 group-hover:rotate-12 transition-transform duration-300">
-                        <div className={`p-2.5 bg-gradient-to-br ${cap.color} rounded-lg`}>
-                          <Icon className="w-5 h-5 text-white" />
-                        </div>
+          <Card className="shadow-xl border-0 bg-white dark:bg-gray-900/50 backdrop-blur overflow-hidden hover:shadow-2xl transition-all duration-300">
+            <CardHeader className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg font-bold">
+                <Zap className="w-5 h-5" />
+                AI Capabilities
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <div className="space-y-2">
+                {capabilities.slice(0, 3).map((cap, index) => {
+                  const Icon = cap.icon;
+                  return (
+                    <div key={index} className="flex items-center gap-3 p-2 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors">
+                      <div className={`p-2 bg-gradient-to-br ${cap.color} rounded-lg`}>
+                        <Icon className="w-5 h-5 text-white" />
                       </div>
-                      <p className="font-bold text-sm text-gray-900 dark:text-white">{cap.title}</p>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1.5 font-medium">{cap.description}</p>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
+                      <div>
+                        <p className="font-bold text-sm text-gray-900 dark:text-white">{cap.title}</p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">{cap.description}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Enhanced Usage Stats Card */}
           <Card className="shadow-xl border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900/50 backdrop-blur overflow-hidden hover:shadow-2xl transition-all duration-300">
