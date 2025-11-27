@@ -274,7 +274,7 @@ export function AIChat({ user }: { user: any }) {
         </div>
 
         {/* Right Sidebar */}
-        <div className="space-y-6 flex flex-col">
+        <div className="space-y-6 flex flex-col max-h-[700px] overflow-y-auto chat-scrollbar">
           {/* Quick Questions Card */}
           <Card className="shadow-xl border-0 bg-white dark:bg-gray-900/50 backdrop-blur overflow-hidden hover:shadow-2xl transition-shadow">
             <CardHeader className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white pb-3">
