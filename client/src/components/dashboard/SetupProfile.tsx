@@ -66,8 +66,18 @@ const subjectsByDegree: Record<string, string[]> = {
     "CS703 - Advanced Database Systems",
     "STA630 - Research Methods",
   ],
-  // Add more degree-specific subjects as needed
 };
+
+const semesters = [
+  { value: "1", label: "Semester 1" },
+  { value: "2", label: "Semester 2" },
+  { value: "3", label: "Semester 3" },
+  { value: "4", label: "Semester 4" },
+  { value: "5", label: "Semester 5" },
+  { value: "6", label: "Semester 6" },
+  { value: "7", label: "Semester 7" },
+  { value: "8", label: "Semester 8" },
+];
 
 export function SetupProfile({ user }: SetupProfileProps) {
   const [step, setStep] = useState(1);
@@ -158,6 +168,35 @@ export function SetupProfile({ user }: SetupProfileProps) {
                 />
 
                 {selectedDegree && (
+                  <FormField
+                    control={form.control}
+                    name="semester"
+                    render={({ field }) => (
+                      <FormItem className="mt-6">
+                        <FormLabel className="text-lg font-semibold">
+                          📅 Select Your Semester
+                        </FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <SelectTrigger className="h-12">
+                              <SelectValue placeholder="Choose your semester" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {semesters.map((sem) => (
+                                <SelectItem key={sem.value} value={sem.value}>
+                                  {sem.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                {selectedDegree && form.getValues("semester") && (
                   <div className="mt-6">
                     <Button
                       type="button"
