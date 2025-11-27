@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bot, Send, User, Sparkles, BookOpen } from "lucide-react";
+import { Bot, Send, User, Sparkles, BookOpen, GraduationCap, Lightbulb, FileText, Users, Zap, Clock } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -76,93 +76,117 @@ export function AIChat({ user }: { user: any }) {
   };
 
   const suggestedQuestions = [
-    "How do I prepare for midterm exams?",
-    "What are some effective study techniques?",
-    "How should I approach GDB discussions?",
-    "Tips for managing multiple assignments?",
-    "How to improve programming skills?"
+    { icon: Clock, text: "How do I prepare for midterm exams?" },
+    { icon: Lightbulb, text: "What are some effective study techniques?" },
+    { icon: Users, text: "How should I approach GDB discussions?" },
+    { icon: Zap, text: "Tips for managing multiple assignments?" },
+    { icon: FileText, text: "How to improve programming skills?" }
+  ];
+
+  const capabilities = [
+    { icon: BookOpen, title: "Study Strategies", description: "Tips and techniques for effective learning", color: "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800" },
+    { icon: FileText, title: "Assignments", description: "Guidance on homework and projects", color: "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800" },
+    { icon: GraduationCap, title: "Exams", description: "Preparation strategies and tips", color: "bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800" },
+    { icon: Users, title: "GDB Help", description: "Discussion board strategies", color: "bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800" },
+    { icon: Lightbulb, title: "Concepts", description: "Explain complex topics clearly", color: "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800" },
+    { icon: Zap, title: "Time Management", description: "Plan your academic schedule", color: "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800" }
   ];
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">AI Q&A Assistant</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-2">
-            Get instant help with VU topics and academic guidance
-          </p>
+      {/* Header */}
+      <div className="relative overflow-hidden rounded-lg bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 dark:from-purple-700 dark:via-purple-600 dark:to-pink-600 p-8 text-white shadow-lg">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0 bg-grid-white/10"></div>
         </div>
-        <Badge variant="outline" className="bg-purple-50 text-purple-700">
-          <Sparkles className="mr-1" size={14} />
-          AI Powered
-        </Badge>
+        <div className="relative z-10">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-white/20 rounded-lg backdrop-blur">
+                  <Sparkles className="w-6 h-6" />
+                </div>
+                <h1 className="text-4xl font-bold">AI Q&A Assistant</h1>
+              </div>
+              <p className="text-purple-100 mt-2 text-lg">
+                Your smart learning companion for VU success
+              </p>
+            </div>
+            <Badge className="bg-white text-purple-600 hover:bg-purple-50 text-base px-4 py-2">
+              <Sparkles className="mr-2" size={16} />
+              Powered by AI
+            </Badge>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Chat Area */}
         <div className="lg:col-span-2">
-          <Card className="h-[600px] flex flex-col">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center">
-                <Bot className="mr-2" size={24} />
+          <Card className="h-[600px] flex flex-col shadow-lg border-0">
+            <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-b dark:border-gray-700 pb-4">
+              <CardTitle className="flex items-center text-xl">
+                <div className="p-2 bg-purple-100 dark:bg-purple-800 rounded-lg mr-3">
+                  <Bot className="text-purple-600 dark:text-purple-300" size={20} />
+                </div>
                 VU AI Assistant
               </CardTitle>
-              <CardDescription>
-                Ask questions about VU courses, study tips, and academic guidance
+              <CardDescription className="mt-2">
+                Ask me anything about your courses, studies, and academic goals
               </CardDescription>
             </CardHeader>
             
-            <CardContent className="flex-1 flex flex-col">
+            <CardContent className="flex-1 flex flex-col bg-white dark:bg-gray-900">
               <ScrollArea className="flex-1 pr-4 mb-4">
                 <div className="space-y-4">
                   {messages.map((message) => (
                     <div
                       key={message.id}
-                      className={`flex items-start space-x-3 ${
+                      className={`flex items-end space-x-3 ${
                         message.role === 'user' ? 'flex-row-reverse space-x-reverse' : ''
                       }`}
                     >
-                      <Avatar className="h-8 w-8">
+                      <Avatar className="h-9 w-9 flex-shrink-0">
                         {message.role === 'user' ? (
-                          <AvatarFallback className="bg-blue-100 text-blue-600">
-                            <User size={16} />
+                          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+                            <User size={18} />
                           </AvatarFallback>
                         ) : (
-                          <AvatarFallback className="bg-purple-100 text-purple-600">
-                            <Bot size={16} />
+                          <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+                            <Bot size={18} />
                           </AvatarFallback>
                         )}
                       </Avatar>
                       
                       <div className={`flex-1 ${message.role === 'user' ? 'text-right' : ''}`}>
                         <div
-                          className={`inline-block p-3 rounded-lg max-w-[80%] ${
+                          className={`inline-block p-4 rounded-2xl shadow-sm max-w-[85%] ${
                             message.role === 'user'
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
+                              ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-br-none'
+                              : 'bg-gradient-to-br from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-700 text-gray-900 dark:text-gray-100 rounded-bl-none border border-gray-200 dark:border-gray-600'
                           }`}
                         >
-                          <p className="whitespace-pre-wrap">{message.content}</p>
+                          <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {message.timestamp.toLocaleTimeString()}
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 px-2">
+                          {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </p>
                       </div>
                     </div>
                   ))}
                   
                   {isLoading && (
-                    <div className="flex items-start space-x-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback className="bg-purple-100 text-purple-600">
-                          <Bot size={16} />
+                    <div className="flex items-end space-x-3">
+                      <Avatar className="h-9 w-9">
+                        <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+                          <Bot size={18} />
                         </AvatarFallback>
                       </Avatar>
-                      <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
+                      <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-2xl rounded-bl-none shadow-sm border border-gray-200 dark:border-gray-600">
                         <div className="flex space-x-1">
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                          <div className="w-2.5 h-2.5 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce"></div>
+                          <div className="w-2.5 h-2.5 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                          <div className="w-2.5 h-2.5 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                         </div>
                       </div>
                     </div>
@@ -170,25 +194,27 @@ export function AIChat({ user }: { user: any }) {
                 </div>
               </ScrollArea>
               
-              <div className="flex space-x-2">
+              <div className="flex gap-2 pt-4 border-t dark:border-gray-700">
                 <Textarea
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
-                  placeholder="Ask me anything about VU courses, study tips, or academic guidance..."
-                  className="flex-1 min-h-[50px] max-h-[100px]"
+                  placeholder="Ask me anything... (Shift+Enter for new line)"
+                  className="flex-1 min-h-[50px] max-h-[100px] rounded-lg resize-none"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault();
                       handleSendMessage();
                     }
                   }}
+                  data-testid="input-ai-message"
                 />
                 <Button
                   onClick={handleSendMessage}
                   disabled={!inputMessage.trim() || isLoading}
-                  className="px-4"
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-4 h-[50px] rounded-lg shadow-md"
+                  data-testid="button-send-ai-message"
                 >
-                  <Send size={16} />
+                  <Send size={20} />
                 </Button>
               </div>
             </CardContent>
@@ -198,74 +224,78 @@ export function AIChat({ user }: { user: any }) {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Suggested Questions */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Suggested Questions</CardTitle>
-              <CardDescription>
-                Click on any question to get started
+          <Card className="shadow-lg border-0 overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-b dark:border-gray-700">
+              <CardTitle className="flex items-center text-lg">
+                <Lightbulb className="w-5 h-5 mr-2 text-yellow-600 dark:text-yellow-400" />
+                Quick Questions
+              </CardTitle>
+              <CardDescription className="mt-1">
+                Click to explore topics
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-4">
               <div className="space-y-2">
-                {suggestedQuestions.map((question, index) => (
-                  <Button
-                    key={index}
-                    variant="outline"
-                    className="w-full text-left justify-start h-auto p-3 whitespace-normal"
-                    onClick={() => setInputMessage(question)}
-                  >
-                    {question}
-                  </Button>
-                ))}
+                {suggestedQuestions.map((item, index) => {
+                  const Icon = item.icon;
+                  return (
+                    <Button
+                      key={index}
+                      variant="outline"
+                      className="w-full text-left justify-start h-auto p-3 whitespace-normal hover:bg-purple-50 dark:hover:bg-purple-900/20 border-gray-200 dark:border-gray-700 group transition-all"
+                      onClick={() => setInputMessage(item.text)}
+                      data-testid={`button-question-${index}`}
+                    >
+                      <Icon className="w-4 h-4 mr-3 flex-shrink-0 text-purple-600 dark:text-purple-400 group-hover:text-purple-700" />
+                      <span className="text-sm">{item.text}</span>
+                    </Button>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
 
-          {/* AI Capabilities */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">What I Can Help With</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center space-x-2">
-                  <BookOpen className="h-4 w-4 text-blue-600" />
-                  <span className="text-sm">Study strategies & tips</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <BookOpen className="h-4 w-4 text-green-600" />
-                  <span className="text-sm">Assignment guidance</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <BookOpen className="h-4 w-4 text-purple-600" />
-                  <span className="text-sm">Exam preparation</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <BookOpen className="h-4 w-4 text-orange-600" />
-                  <span className="text-sm">GDB participation</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <BookOpen className="h-4 w-4 text-red-600" />
-                  <span className="text-sm">Academic planning</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          {/* AI Capabilities Grid */}
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+              <Zap className="w-4 h-4 text-purple-600" />
+              I Can Help With
+            </h3>
+            <div className="grid grid-cols-2 gap-3">
+              {capabilities.map((cap, index) => {
+                const Icon = cap.icon;
+                return (
+                  <Card key={index} className={`border shadow-sm cursor-pointer hover:shadow-md hover:scale-105 transition-all ${cap.color}`}>
+                    <CardContent className="p-4 text-center">
+                      <div className="flex justify-center mb-2">
+                        <Icon className="w-6 h-6 text-gray-700 dark:text-gray-300" />
+                      </div>
+                      <p className="font-medium text-sm text-gray-900 dark:text-white">{cap.title}</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{cap.description}</p>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
 
           {/* Usage Stats */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Your AI Usage</CardTitle>
+          <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
+            <CardHeader className="border-b dark:border-gray-700">
+              <CardTitle className="flex items-center text-lg">
+                <Clock className="w-5 h-5 mr-2 text-green-600 dark:text-green-400" />
+                Session Stats
+              </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Questions Asked</span>
-                  <span className="font-semibold">{messages.filter(m => m.role === 'user').length}</span>
+            <CardContent className="pt-4">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Questions Asked</span>
+                  <span className="text-2xl font-bold text-purple-600 dark:text-purple-400">{messages.filter(m => m.role === 'user').length - 1}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Responses Received</span>
-                  <span className="font-semibold">{messages.filter(m => m.role === 'assistant').length}</span>
+                <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Answers Received</span>
+                  <span className="text-2xl font-bold text-green-600 dark:text-green-400">{messages.filter(m => m.role === 'assistant').length - 1}</span>
                 </div>
               </div>
             </CardContent>
