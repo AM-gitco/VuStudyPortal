@@ -111,28 +111,28 @@ export function Resources({ user }: { user: any }) {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 px-2 sm:px-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Resources Library</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Resources</h1>
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">
             {filteredResources.length} resources available
           </p>
         </div>
-        <BookOpen className="h-12 w-12 text-blue-500" />
+        <BookOpen className="h-8 w-8 sm:h-10 sm:w-10 text-blue-500 flex-shrink-0" />
       </div>
 
       {/* Search and Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="md:col-span-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+        <div className="sm:col-span-2 lg:col-span-2">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder="Search resources..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              className="pl-8 text-sm h-9"
             />
           </div>
         </div>
@@ -140,7 +140,7 @@ export function Resources({ user }: { user: any }) {
         <select
           value={selectedSubject}
           onChange={(e) => setSelectedSubject(e.target.value)}
-          className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+          className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
         >
           {subjects.map(subject => (
             <option key={subject} value={subject}>
@@ -152,7 +152,7 @@ export function Resources({ user }: { user: any }) {
         <select
           value={selectedType}
           onChange={(e) => setSelectedType(e.target.value)}
-          className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+          className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
         >
           {types.map(type => (
             <option key={type} value={type}>
@@ -165,66 +165,66 @@ export function Resources({ user }: { user: any }) {
       {/* Resources Grid */}
       {filteredResources.length === 0 ? (
         <Card>
-          <CardContent className="text-center py-12">
-            <FileText className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+          <CardContent className="text-center py-8 sm:py-12">
+            <FileText className="mx-auto h-12 w-12 sm:h-16 sm:w-16 text-gray-400 mb-3" />
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-1">
               No Resources Found
             </h3>
-            <p className="text-gray-500">
-              Try adjusting your search filters or check back later for more resources.
+            <p className="text-xs sm:text-sm text-gray-500">
+              Try adjusting your search filters or check back later.
             </p>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {filteredResources.map(resource => (
-            <Card key={resource.id} className="hover:shadow-lg transition-shadow flex flex-col">
-              <CardHeader className="pb-3">
+            <Card key={resource.id} className="hover:shadow-md dark:hover:shadow-gray-800/50 transition-shadow flex flex-col border border-gray-200 dark:border-gray-700">
+              <CardHeader className="pb-2 sm:pb-3">
                 <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Badge variant="secondary">{resource.subject}</Badge>
-                      <Badge variant="outline">{resource.type}</Badge>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1 mb-2 flex-wrap">
+                      <Badge variant="secondary" className="text-xs">{resource.subject}</Badge>
+                      <Badge variant="outline" className="text-xs">{resource.type}</Badge>
                     </div>
-                    <CardTitle className="text-base line-clamp-2">{resource.title}</CardTitle>
+                    <CardTitle className="text-sm line-clamp-2">{resource.title}</CardTitle>
                   </div>
                 </div>
               </CardHeader>
 
-              <CardContent className="flex-1 space-y-4">
-                <CardDescription className="line-clamp-2">
+              <CardContent className="flex-1 space-y-3">
+                <CardDescription className="line-clamp-2 text-xs">
                   {resource.description}
                 </CardDescription>
 
                 {/* Stats */}
-                <div className="grid grid-cols-3 gap-3 text-xs">
-                  <div>
-                    <p className="text-gray-500 dark:text-gray-400">Size</p>
-                    <p className="font-semibold text-gray-900 dark:text-white">{resource.size}</p>
+                <div className="grid grid-cols-3 gap-2 text-xs">
+                  <div className="space-y-1">
+                    <p className="text-gray-500 dark:text-gray-400 font-medium">Size</p>
+                    <p className="text-gray-900 dark:text-white font-semibold">{resource.size}</p>
                   </div>
-                  <div>
-                    <p className="text-gray-500 dark:text-gray-400">Downloads</p>
-                    <p className="font-semibold text-gray-900 dark:text-white">{resource.downloads}</p>
+                  <div className="space-y-1">
+                    <p className="text-gray-500 dark:text-gray-400 font-medium">Downloads</p>
+                    <p className="text-gray-900 dark:text-white font-semibold">{resource.downloads}</p>
                   </div>
-                  <div>
-                    <p className="text-gray-500 dark:text-gray-400">Rating</p>
-                    <div className="flex items-center gap-1">
+                  <div className="space-y-1">
+                    <p className="text-gray-500 dark:text-gray-400 font-medium">Rating</p>
+                    <div className="flex items-center gap-0.5">
                       <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                      <p className="font-semibold text-gray-900 dark:text-white">{resource.rating}</p>
+                      <p className="text-gray-900 dark:text-white font-semibold">{resource.rating}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Meta Info */}
-                <div className="text-xs text-gray-500 dark:text-gray-400 border-t pt-3">
-                  <p>Uploaded by <span className="font-semibold text-gray-700 dark:text-gray-300">{resource.uploadedBy}</span></p>
-                  <p>{new Date(resource.uploadedDate).toLocaleDateString()}</p>
+                <div className="text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700 pt-2">
+                  <p>By <span className="font-semibold text-gray-700 dark:text-gray-300">{resource.uploadedBy}</span></p>
+                  <p>{new Date(resource.uploadedDate).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}</p>
                 </div>
 
                 {/* Action Button */}
-                <Button size="sm" className="w-full">
-                  <Download className="mr-2 h-4 w-4" />
-                  Download Resource
+                <Button size="sm" className="w-full h-8 text-xs">
+                  <Download className="mr-1 h-3 w-3" />
+                  Download
                 </Button>
               </CardContent>
             </Card>
@@ -234,34 +234,34 @@ export function Resources({ user }: { user: any }) {
 
       {/* Summary Stats */}
       {filteredResources.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <p className="text-sm text-gray-500 dark:text-gray-400">Total Resources</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{mockResources.length}</p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+          <Card className="border border-gray-200 dark:border-gray-700">
+            <CardContent className="p-3">
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Total</p>
+              <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">{mockResources.length}</p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="p-4">
-              <p className="text-sm text-gray-500 dark:text-gray-400">Subjects Covered</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">3</p>
+          <Card className="border border-gray-200 dark:border-gray-700">
+            <CardContent className="p-3">
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Subjects</p>
+              <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">3</p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="p-4">
-              <p className="text-sm text-gray-500 dark:text-gray-400">Total Downloads</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">1.7K</p>
+          <Card className="border border-gray-200 dark:border-gray-700">
+            <CardContent className="p-3">
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Downloads</p>
+              <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">1.7K</p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="p-4">
-              <p className="text-sm text-gray-500 dark:text-gray-400">Avg. Rating</p>
+          <Card className="border border-gray-200 dark:border-gray-700">
+            <CardContent className="p-3">
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Avg Rating</p>
               <div className="flex items-center gap-1">
-                <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">4.6</p>
+                <Star className="h-4 w-4 sm:h-5 sm:w-5 fill-yellow-400 text-yellow-400" />
+                <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">4.6</p>
               </div>
             </CardContent>
           </Card>
