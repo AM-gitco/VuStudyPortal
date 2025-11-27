@@ -47,6 +47,10 @@ export function UploadArea({ user }: { user: any }) {
     queryKey: ["/api/uploads/my"],
   });
 
+  const { data: allUploads = [], isLoading: isLoadingAll } = useQuery<UploadType[]>({
+    queryKey: ["/api/uploads"],
+  });
+
   const form = useForm<UploadData>({
     resolver: zodResolver(uploadSchema),
     defaultValues: {
@@ -91,6 +95,10 @@ export function UploadArea({ user }: { user: any }) {
   const getUploadTypeLabel = (value: string) => {
     return uploadTypes.find(t => t.value === value)?.label || value;
   };
+
+  const otherUsersUploads = allUploads.filter(
+    (upload) => upload.userId !== user?.id && upload.isApproved
+  );
 
   return (
     <div className="space-y-6">
@@ -472,6 +480,77 @@ export function UploadArea({ user }: { user: any }) {
                   <div className="text-xs text-gray-500 flex items-center gap-4">
                     <span>ID: {upload.id}</span>
                     <span>Uploaded: {upload.createdAt ? new Date(upload.createdAt).toLocaleDateString() : 'Recently'}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Community Uploads</CardTitle>
+          <CardDescription>
+            Approved materials shared by other VU students
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoadingAll ? (
+            <div className="text-center py-8">Loading community uploads...</div>
+          ) : otherUsersUploads.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <Upload className="mx-auto h-12 w-12 mb-4 opacity-50" />
+              <p>No community uploads available yet. Be the first to share!</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {otherUsersUploads.map((upload) => (
+                <div 
+                  key={upload.id} 
+                  className="p-4 border rounded-lg dark:border-gray-700 hover:shadow-md transition-shadow"
+                  data-testid={`card-community-upload-${upload.id}`}
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-lg text-gray-900 dark:text-white mb-2">{upload.title}</h4>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge variant="outline">{upload.subject}</Badge>
+                        <Badge variant="secondary">{getUploadTypeLabel(upload.uploadType)}</Badge>
+                        <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                          <CheckCircle className="mr-1" size={12} />
+                          Approved
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {upload.description && (
+                    <div className="mb-3 p-3 bg-gray-50 dark:bg-gray-800 rounded">
+                      <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Description:</p>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words">{upload.description}</p>
+                    </div>
+                  )}
+
+                  {upload.textContent && (
+                    <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-800">
+                      <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-2">Content:</p>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words max-h-48 overflow-y-auto">{upload.textContent}</p>
+                    </div>
+                  )}
+
+                  {upload.externalLink && (
+                    <div className="mb-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded border border-purple-200 dark:border-purple-800">
+                      <p className="text-sm font-medium text-purple-600 dark:text-purple-400 mb-1">External Link:</p>
+                      <a href={upload.externalLink} target="_blank" rel="noopener noreferrer" className="text-sm text-purple-600 dark:text-purple-400 hover:underline break-all">
+                        {upload.externalLink}
+                      </a>
+                    </div>
+                  )}
+
+                  <div className="text-xs text-gray-500 flex items-center gap-4">
+                    <span>ID: {upload.id}</span>
+                    <span>Shared: {upload.createdAt ? new Date(upload.createdAt).toLocaleDateString() : 'Recently'}</span>
                   </div>
                 </div>
               ))}
