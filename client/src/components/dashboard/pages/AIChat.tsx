@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Bot, Send, User, Sparkles, BookOpen, GraduationCap, Lightbulb, FileText, Users, Zap, Clock, MessageSquare, ArrowDown, MoreVertical, Copy, RefreshCw } from "lucide-react";
+import { Bot, Send, User, Sparkles, BookOpen, GraduationCap, Lightbulb, FileText, Users, Zap, Clock, MessageSquare, ArrowDown, MoreVertical, Copy, RefreshCw, Plus, Trash2, Download } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +13,13 @@ interface ChatMessage {
   timestamp: Date;
 }
 
+interface ChatSession {
+  id: string;
+  name: string;
+  messages: ChatMessage[];
+  createdAt: Date;
+}
+
 export function AIChat({ user }: { user: any }) {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -22,11 +29,72 @@ export function AIChat({ user }: { user: any }) {
       timestamp: new Date()
     }
   ]);
+  const [sessions, setSessions] = useState<ChatSession[]>([
+    {
+      id: '1',
+      name: 'Current Session',
+      messages: messages,
+      createdAt: new Date()
+    }
+  ]);
+  const [currentSessionId, setCurrentSessionId] = useState('1');
+  const [showDropdown, setShowDropdown] = useState(false);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const handleNewSession = () => {
+    const newSession: ChatSession = {
+      id: Date.now().toString(),
+      name: `Session ${sessions.length + 1}`,
+      messages: [
+        {
+          id: '1',
+          role: 'assistant',
+          content: 'Hello! I\'m your VU AI assistant. I can help you with questions about your courses, study tips, VU policies, and academic guidance. What would you like to know?',
+          timestamp: new Date()
+        }
+      ],
+      createdAt: new Date()
+    };
+    setSessions([...sessions, newSession]);
+    setCurrentSessionId(newSession.id);
+    setMessages(newSession.messages);
+    setShowDropdown(false);
+  };
+
+  const handleSwitchSession = (sessionId: string) => {
+    const session = sessions.find(s => s.id === sessionId);
+    if (session) {
+      setCurrentSessionId(sessionId);
+      setMessages(session.messages);
+      setShowDropdown(false);
+    }
+  };
+
+  const handleClearChat = () => {
+    const newMessages = [messages[0]];
+    setMessages(newMessages);
+    setSessions(sessions.map(s => s.id === currentSessionId ? { ...s, messages: newMessages } : s));
+    setShowDropdown(false);
+  };
+
+  const handleDeleteSession = (sessionId: string) => {
+    if (sessions.length === 1) return;
+    const newSessions = sessions.filter(s => s.id !== sessionId);
+    setSessions(newSessions);
+    if (currentSessionId === sessionId) {
+      setCurrentSessionId(newSessions[0].id);
+      setMessages(newSessions[0].messages);
+    }
+  };
+
+  useEffect(() => {
+    setSessions(sessions.map(s => s.id === currentSessionId ? { ...s, messages } : s));
+  }, [messages]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -141,7 +209,7 @@ export function AIChat({ user }: { user: any }) {
         <div className="lg:col-span-2 flex flex-col">
           {/* Chat Container */}
           <Card className="flex-1 flex flex-col shadow-2xl border-0 overflow-hidden bg-white dark:bg-gray-900/50 backdrop-blur transition-all hover:shadow-3xl duration-300">
-            {/* Enhanced Chat Header */}
+            {/* Enhanced Chat Header with Dropdown */}
             <CardHeader className="bg-gradient-to-r from-purple-50 via-blue-50 to-cyan-50 dark:from-purple-900/30 dark:via-blue-900/30 dark:to-cyan-900/30 border-b dark:border-gray-700/50 pb-4 relative">
               <div className="absolute top-0 right-0 w-40 h-40 bg-cyan-400/5 rounded-full -mr-20 -mt-20 blur-2xl"></div>
               <div className="relative flex items-center justify-between">
@@ -154,13 +222,81 @@ export function AIChat({ user }: { user: any }) {
                       VU AI Assistant
                       <span className="inline-flex h-3 w-3 bg-green-500 rounded-full animate-pulse shadow-lg shadow-green-500/50"></span>
                     </CardTitle>
-                    <CardDescription className="mt-1 text-base">Ready to help with your studies</CardDescription>
+                    <CardDescription className="mt-1 text-base">Session: {sessions.find(s => s.id === currentSessionId)?.name}</CardDescription>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button variant="ghost" size="sm" className="hover:bg-blue-100 dark:hover:bg-blue-900/30">
-                    <RefreshCw size={18} />
+                <div className="flex gap-2 relative" ref={dropdownRef}>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setShowDropdown(!showDropdown)}
+                    className="hover:bg-blue-100 dark:hover:bg-blue-900/30 relative"
+                  >
+                    <MoreVertical size={18} />
                   </Button>
+                  
+                  {showDropdown && (
+                    <div className="absolute top-10 right-0 w-56 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl shadow-2xl z-50 overflow-hidden">
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start px-4 py-2.5 text-sm font-medium hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-none border-b dark:border-gray-700"
+                        onClick={handleNewSession}
+                        data-testid="button-new-session"
+                      >
+                        <Plus size={16} className="mr-2" />
+                        New Session
+                      </Button>
+                      
+                      <div className="px-3 py-2 border-b dark:border-gray-700">
+                        <p className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase mb-2">Active Sessions</p>
+                        <div className="space-y-1 max-h-32 overflow-y-auto">
+                          {sessions.map(session => (
+                            <div key={session.id} className="flex items-center justify-between gap-2 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors group">
+                              <Button
+                                variant="ghost"
+                                className={`flex-1 justify-start text-xs font-medium px-2 py-1 ${
+                                  currentSessionId === session.id
+                                    ? 'bg-purple-200 dark:bg-purple-900 text-purple-900 dark:text-purple-200'
+                                    : 'text-gray-700 dark:text-gray-300'
+                                }`}
+                                onClick={() => handleSwitchSession(session.id)}
+                              >
+                                {session.name}
+                              </Button>
+                              {sessions.length > 1 && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                  onClick={() => handleDeleteSession(session.id)}
+                                >
+                                  <Trash2 size={14} className="text-red-500" />
+                                </Button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start px-4 py-2.5 text-sm font-medium hover:bg-red-100 dark:hover:bg-red-900/30 rounded-none border-b dark:border-gray-700 text-red-600 dark:text-red-400"
+                        onClick={handleClearChat}
+                        data-testid="button-clear-chat"
+                      >
+                        <RefreshCw size={16} className="mr-2" />
+                        Clear Chat
+                      </Button>
+                      
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start px-4 py-2.5 text-sm font-medium hover:bg-green-100 dark:hover:bg-green-900/30 rounded-none"
+                      >
+                        <Download size={16} className="mr-2" />
+                        Export Chat
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             </CardHeader>
