@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +21,7 @@ export function LoginForm({ onSwitchToSignup, onSwitchToForgotPassword, onSwitch
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
 
   const form = useForm<LoginData>({
     resolver: zodResolver(loginSchema),
@@ -42,6 +44,11 @@ export function LoginForm({ onSwitchToSignup, onSwitchToForgotPassword, onSwitch
       // Invalidate the user query to trigger re-fetch and update auth state
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       console.log("Login successful:", data);
+      
+      // Redirect to dashboard after a short delay to allow auth state to update
+      setTimeout(() => {
+        setLocation("/dashboard");
+      }, 500);
     },
     onError: (error: any) => {
       const errorMessage = error.message || "Login failed";
