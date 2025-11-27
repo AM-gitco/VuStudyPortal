@@ -201,7 +201,11 @@ export function UploadArea({ user }: { user: any }) {
 
               <div className="space-y-4">
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
-                  <TabsList className="grid w-full grid-cols-2">
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="file" className="flex items-center" data-testid="tab-file">
+                      <Upload className="mr-2" size={16} />
+                      File Upload
+                    </TabsTrigger>
                     <TabsTrigger value="text" className="flex items-center" data-testid="tab-text">
                       <FileText className="mr-2" size={16} />
                       Text Content
@@ -211,6 +215,22 @@ export function UploadArea({ user }: { user: any }) {
                       External Link
                     </TabsTrigger>
                   </TabsList>
+
+                  <TabsContent value="file" className="space-y-4">
+                    <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center hover:border-blue-500 transition-colors cursor-pointer" data-testid="file-upload-area">
+                      <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                      <p className="text-gray-600 dark:text-gray-300 mb-2 font-medium">
+                        Drag and drop your file here, or click to browse
+                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Supported formats: PDF, DOC, DOCX, PNG, JPG (Max 10MB)
+                      </p>
+                      <Button type="button" variant="outline" className="mt-4" data-testid="button-browse-files">
+                        <Upload className="mr-2" size={16} />
+                        Choose File
+                      </Button>
+                    </div>
+                  </TabsContent>
 
                   <TabsContent value="text">
                     <FormField
@@ -222,7 +242,7 @@ export function UploadArea({ user }: { user: any }) {
                           <FormControl>
                             <Textarea
                               placeholder="Write your content here..."
-                              className="min-h-[200px]"
+                              className="min-h-[250px]"
                               data-testid="textarea-content"
                               {...field}
                             />
@@ -315,31 +335,56 @@ export function UploadArea({ user }: { user: any }) {
               {myUploads.map((upload) => (
                 <div 
                   key={upload.id} 
-                  className="flex items-center justify-between p-4 border rounded-lg dark:border-gray-700"
+                  className="p-4 border rounded-lg dark:border-gray-700 hover:shadow-md transition-shadow"
                   data-testid={`card-upload-${upload.id}`}
                 >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-medium">{upload.title}</h4>
-                      <Badge variant="outline">{upload.subject}</Badge>
-                      <Badge variant="secondary">{getUploadTypeLabel(upload.uploadType)}</Badge>
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-lg text-gray-900 dark:text-white mb-2">{upload.title}</h4>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge variant="outline">{upload.subject}</Badge>
+                        <Badge variant="secondary">{getUploadTypeLabel(upload.uploadType)}</Badge>
+                        {upload.isApproved ? (
+                          <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                            <CheckCircle className="mr-1" size={12} />
+                            Approved
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                            <Clock className="mr-1" size={12} />
+                            Pending
+                          </Badge>
+                        )}
+                      </div>
                     </div>
-                    {upload.description && (
-                      <p className="text-sm text-gray-500 mt-1">{upload.description}</p>
-                    )}
                   </div>
-                  <div className="flex items-center">
-                    {upload.isApproved ? (
-                      <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                        <CheckCircle className="mr-1" size={14} />
-                        Approved
-                      </Badge>
-                    ) : (
-                      <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-                        <Clock className="mr-1" size={14} />
-                        Pending
-                      </Badge>
-                    )}
+                  
+                  {upload.description && (
+                    <div className="mb-3 p-3 bg-gray-50 dark:bg-gray-800 rounded">
+                      <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Description:</p>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words">{upload.description}</p>
+                    </div>
+                  )}
+
+                  {upload.textContent && (
+                    <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-800">
+                      <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-2">Content:</p>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words max-h-48 overflow-y-auto">{upload.textContent}</p>
+                    </div>
+                  )}
+
+                  {upload.externalLink && (
+                    <div className="mb-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded border border-purple-200 dark:border-purple-800">
+                      <p className="text-sm font-medium text-purple-600 dark:text-purple-400 mb-1">External Link:</p>
+                      <a href={upload.externalLink} target="_blank" rel="noopener noreferrer" className="text-sm text-purple-600 dark:text-purple-400 hover:underline break-all">
+                        {upload.externalLink}
+                      </a>
+                    </div>
+                  )}
+
+                  <div className="text-xs text-gray-500 flex items-center gap-4">
+                    <span>ID: {upload.id}</span>
+                    <span>Uploaded: {upload.createdAt ? new Date(upload.createdAt).toLocaleDateString() : 'Recently'}</span>
                   </div>
                 </div>
               ))}
