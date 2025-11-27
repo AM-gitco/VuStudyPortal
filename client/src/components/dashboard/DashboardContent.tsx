@@ -9,7 +9,7 @@ import { Badges } from "./pages/Badges";
 import { About } from "./pages/About";
 import { SettingsPage } from "./pages/SettingsPage";
 import { OurTeam } from "./pages/OurTeam";
-import { SubjectResources } from "./pages/SubjectResources";
+import { Resources } from "./pages/Resources";
 import { AdminPanel } from "./pages/AdminPanel";
 
 interface DashboardContentProps {
@@ -44,7 +44,7 @@ export function DashboardContent({ user, activePage, onPageChange }: DashboardCo
       case "team":
         return <OurTeam user={user} />;
       case "resources":
-        return <SubjectResources user={user} />;
+        return <Resources user={user} />;
       case "admin":
         return user?.role === 'admin' ? <AdminPanel user={user} /> : <DashboardHome user={user} onPageChange={onPageChange} />;
       default:
