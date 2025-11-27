@@ -138,9 +138,9 @@ export function AIChat({ user }: { user: any }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Chat Area */}
-        <div className="lg:col-span-2 flex flex-col max-h-[750px] overflow-y-auto chat-scrollbar">
+        <div className="lg:col-span-2 flex flex-col">
           {/* Chat Container */}
-          <Card className="flex-1 flex flex-col shadow-2xl border-0 bg-white dark:bg-gray-900/50 backdrop-blur">
+          <Card className="flex-1 flex flex-col shadow-2xl border-0 overflow-hidden bg-white dark:bg-gray-900/50 backdrop-blur">
             {/* Chat Header */}
             <CardHeader className="bg-gradient-to-r from-purple-50 via-blue-50 to-cyan-50 dark:from-purple-900/20 dark:via-blue-900/20 dark:to-cyan-900/20 border-b dark:border-gray-700 pb-4">
               <div className="flex items-center justify-between">
@@ -163,7 +163,7 @@ export function AIChat({ user }: { user: any }) {
             <div 
               ref={scrollContainerRef}
               onScroll={handleScroll}
-              className="flex-1 overflow-y-auto px-6 py-6 space-y-4 bg-gradient-to-b from-white via-white to-gray-50/50 dark:from-gray-900/50 dark:via-gray-900/50 dark:to-gray-800/50 scroll-smooth chat-scrollbar"
+              className="flex-1 overflow-y-auto px-6 py-6 space-y-4 bg-gradient-to-b from-white via-white to-gray-50/50 dark:from-gray-900/50 dark:via-gray-900/50 dark:to-gray-800/50 scroll-smooth chat-scrollbar max-h-[500px]"
               style={{
                 scrollBehavior: 'smooth'
               }}
