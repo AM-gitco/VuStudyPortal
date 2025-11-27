@@ -44,7 +44,7 @@ export function DashboardContent({ user, activePage, onPageChange }: DashboardCo
       case "team":
         return <OurTeam user={user} />;
       case "resources":
-        return <Resources user={user} />;
+        return <Resources user={user} onPageChange={onPageChange} />;
       case "admin":
         return user?.role === 'admin' ? <AdminPanel user={user} /> : <DashboardHome user={user} onPageChange={onPageChange} />;
       default:

@@ -1,4 +1,4 @@
-import { FileText, Download, Star, Filter, Search, BookOpen } from "lucide-react";
+import { FileText, Download, Star, Filter, Search, BookOpen, ArrowRight } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,10 +18,19 @@ interface Resource {
   uploadedDate: string;
 }
 
-export function Resources({ user }: { user: any }) {
+interface ResourcesProps {
+  user: any;
+  onPageChange?: (page: string) => void;
+}
+
+export function Resources({ user, onPageChange }: ResourcesProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("all");
   const [selectedType, setSelectedType] = useState("all");
+
+  // Check if user has subjects
+  const userSubjects = user?.subjects || [];
+  const hasSubjects = userSubjects.length > 0;
 
   const mockResources: Resource[] = [
     {
@@ -98,10 +107,22 @@ export function Resources({ user }: { user: any }) {
     }
   ];
 
-  const subjects = ["all", "CS201", "CS301", "MTH601"];
+  // Extract subject codes from user subjects
+  const getUserSubjectCodes = (): string[] => {
+    return userSubjects.map((subject: string) => {
+      const match = subject.match(/^([A-Z]{2,4}\d{3})/);
+      return match ? match[1] : subject.substring(0, 6);
+    });
+  };
+
+  const userSubjectCodes = getUserSubjectCodes();
+  const subjects = ["all", ...userSubjectCodes];
   const types = ["all", "PDF", "Video", "Presentation", "Code", "Document"];
 
   const filteredResources = mockResources.filter(resource => {
+    // Only show resources for user's subjects
+    if (!userSubjectCodes.includes(resource.subject)) return false;
+
     const matchesSearch = resource.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          resource.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesSubject = selectedSubject === "all" || resource.subject === selectedSubject;
@@ -109,6 +130,43 @@ export function Resources({ user }: { user: any }) {
     
     return matchesSearch && matchesSubject && matchesType;
   });
+
+  // Show no subjects message
+  if (!hasSubjects) {
+    return (
+      <div className="space-y-4 px-2 sm:px-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Resources</h1>
+            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">
+              Access learning materials for your courses
+            </p>
+          </div>
+          <BookOpen className="h-8 w-8 sm:h-10 sm:w-10 text-blue-500 flex-shrink-0" />
+        </div>
+
+        <Card className="border-2 border-dashed border-gray-300 dark:border-gray-600">
+          <CardContent className="text-center py-12 sm:py-16">
+            <BookOpen className="mx-auto h-16 w-16 sm:h-20 sm:w-20 text-gray-400 mb-4" />
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-2">
+              No Subjects Selected
+            </h3>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-6">
+              Please select your subjects first to access course resources and materials.
+            </p>
+            <Button 
+              size="lg" 
+              className="text-sm sm:text-base"
+              onClick={() => onPageChange?.('subjects')}
+            >
+              <ArrowRight className="mr-2 h-4 w-4" />
+              Go to My Subjects
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 px-2 sm:px-4">
