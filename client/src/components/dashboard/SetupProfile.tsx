@@ -14,6 +14,7 @@ import { apiRequest } from "@/lib/queryClient";
 
 const setupSchema = z.object({
   degreeProgram: z.string().min(1, "Please select your degree program"),
+  semester: z.string().min(1, "Please select your semester"),
   subjects: z.array(z.string()).min(1, "Please select at least one subject"),
 });
 
@@ -77,6 +78,7 @@ export function SetupProfile({ user }: SetupProfileProps) {
     resolver: zodResolver(setupSchema),
     defaultValues: {
       degreeProgram: "",
+      semester: "",
       subjects: [],
     },
   });
