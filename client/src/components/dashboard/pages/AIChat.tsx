@@ -138,9 +138,9 @@ export function AIChat({ user }: { user: any }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Chat Area */}
-        <div className="lg:col-span-2 flex flex-col">
+        <div className="lg:col-span-2 flex flex-col max-h-[750px] overflow-y-auto chat-scrollbar">
           {/* Chat Container */}
-          <Card className="flex-1 flex flex-col shadow-2xl border-0 overflow-hidden bg-white dark:bg-gray-900/50 backdrop-blur">
+          <Card className="flex-1 flex flex-col shadow-2xl border-0 bg-white dark:bg-gray-900/50 backdrop-blur">
             {/* Chat Header */}
             <CardHeader className="bg-gradient-to-r from-purple-50 via-blue-50 to-cyan-50 dark:from-purple-900/20 dark:via-blue-900/20 dark:to-cyan-900/20 border-b dark:border-gray-700 pb-4">
               <div className="flex items-center justify-between">
@@ -274,7 +274,7 @@ export function AIChat({ user }: { user: any }) {
         </div>
 
         {/* Right Sidebar */}
-        <div className="space-y-6 flex flex-col max-h-[700px] overflow-y-auto chat-scrollbar">
+        <div className="space-y-6 flex flex-col">
           {/* Quick Questions Card */}
           <Card className="shadow-xl border-0 bg-white dark:bg-gray-900/50 backdrop-blur overflow-hidden hover:shadow-2xl transition-shadow">
             <CardHeader className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white pb-3">
