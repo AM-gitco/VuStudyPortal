@@ -1,39 +1,53 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertUserSchema, loginSchema, forgotPasswordSchema, otpVerificationSchema, resetPasswordSchema } from "@shared/schema";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
+import { signToken, getAuthUserId } from "./auth";
+
+// Extend Express Request to include userId
+declare global {
+  namespace Express {
+    interface Request {
+      userId?: number;
+    }
+  }
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const generateOTP = (): string => {
     return Math.floor(100000 + Math.random() * 900000).toString();
   };
 
-  // Auth middleware helper
-  const requireAuth = (req: any, res: any, next: any) => {
-    if (!req.session?.userId) {
+  // Auth middleware helper - now uses JWT
+  const requireAuth = (req: Request, res: Response, next: NextFunction) => {
+    const userId = getAuthUserId(req);
+    if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
+    req.userId = userId;
     next();
   };
 
-  const requireAdmin = async (req: any, res: any, next: any) => {
-    if (!req.session?.userId) {
+  const requireAdmin = async (req: Request, res: Response, next: NextFunction) => {
+    const userId = getAuthUserId(req);
+    if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    const user = await storage.getUser(req.session.userId);
+    const user = await storage.getUser(userId);
     if (!user || user.role !== "admin") {
       return res.status(403).json({ message: "Admin access required" });
     }
+    req.userId = userId;
     next();
   };
 
   // ================== AUTH ROUTES ==================
-  
+
   app.post("/api/auth/signup", async (req, res) => {
     try {
       const userData = insertUserSchema.parse(req.body);
-      
+
       const existingUser = await storage.getUserByEmail(userData.email);
       if (existingUser) {
         return res.status(400).json({ message: "User already exists with this email" });
@@ -45,7 +59,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const hashedPassword = await bcrypt.hash(userData.password, 10);
-      
+
       const pendingUser = await storage.createPendingUser({
         ...userData,
         password: hashedPassword,
@@ -66,9 +80,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`👤 Full Name: ${pendingUser.fullName}`);
       console.log(`🆔 Username: ${pendingUser.username}`);
 
-      res.status(201).json({ 
+      res.status(201).json({
         message: "Registration initiated. Please check your email for verification code.",
-        email: pendingUser.email 
+        email: pendingUser.email
       });
     } catch (error: any) {
       if (error.errors) {
@@ -81,7 +95,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/login", async (req, res) => {
     try {
       const loginData = loginSchema.parse(req.body);
-      
+
       const user = await storage.getUserByEmail(loginData.email);
       if (!user) {
         return res.status(401).json({ message: "Invalid email or password" });
@@ -92,37 +106,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Invalid email or password" });
       }
 
+      // Generate JWT token
+      const token = signToken(user.id);
+
       if (user.role === "admin") {
-        (req.session as any).userId = user.id;
         const { password, ...userWithoutPassword } = user;
         console.log(`✅ Admin login successful for: ${user.email}`);
-        return res.json({ 
+        return res.json({
           message: "Admin login successful",
-          user: userWithoutPassword 
+          token,
+          user: userWithoutPassword
         });
       }
 
       if (!loginData.email.endsWith("@vu.edu.pk")) {
-        return res.status(403).json({ 
+        return res.status(403).json({
           message: "Only VU students with @vu.edu.pk emails can access this portal"
         });
       }
 
       if (!user.isVerified) {
-        return res.status(403).json({ 
+        return res.status(403).json({
           message: "Please verify your email before logging in",
           requiresVerification: true,
           email: user.email
         });
       }
 
-      (req.session as any).userId = user.id;
-      
       const { password, ...userWithoutPassword } = user;
       console.log(`✅ Student login successful for: ${user.email}`);
-      res.json({ 
+      res.json({
         message: "Login successful",
-        user: userWithoutPassword 
+        token,
+        user: userWithoutPassword
       });
     } catch (error: any) {
       if (error.errors) {
@@ -132,32 +148,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/user/setup-profile", async (req: any, res) => {
+  app.post("/api/user/setup-profile", requireAuth, async (req: Request, res) => {
     try {
       const { degreeProgram, subjects } = req.body;
-      
+
       if (!degreeProgram || !subjects || !Array.isArray(subjects) || subjects.length === 0) {
-        return res.status(400).json({ 
-          message: "Degree program and at least one subject are required" 
+        return res.status(400).json({
+          message: "Degree program and at least one subject are required"
         });
       }
 
-      const userId = (req.session as any)?.userId;
-      if (!userId) {
-        return res.status(401).json({ message: "Not authenticated" });
-      }
-      
+      const userId = req.userId!;
       const updatedUser = await storage.updateUserProfile(userId, degreeProgram, subjects);
-      
+
       if (!updatedUser) {
         return res.status(404).json({ message: "User not found" });
       }
 
       const { password, ...userWithoutPassword } = updatedUser;
-      
-      res.json({ 
+
+      res.json({
         message: "Profile setup completed successfully",
-        user: userWithoutPassword 
+        user: userWithoutPassword
       });
     } catch (error) {
       console.error("Error setting up profile:", error);
@@ -168,7 +180,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/forgot-password", async (req, res) => {
     try {
       const { email } = forgotPasswordSchema.parse(req.body);
-      
+
       const user = await storage.getUserByEmail(email);
       if (!user) {
         return res.status(404).json({ message: "No account found with this email address" });
@@ -186,9 +198,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`🔐 PASSWORD RESET OTP for ${email}: ${otpCode} (expires in 10 minutes)`);
 
-      res.json({ 
+      res.json({
         message: "Password reset code sent to your email",
-        email 
+        email
       });
     } catch (error: any) {
       if (error.errors) {
@@ -201,7 +213,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/verify-otp", async (req, res) => {
     try {
       const { email, code } = otpVerificationSchema.parse(req.body);
-      
+
       const otpRecord = await storage.getValidOtpCode(email, code);
       if (!otpRecord) {
         return res.status(400).json({ message: "Invalid or expired verification code" });
@@ -224,14 +236,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`✅ User registration completed for: ${user.email}`);
         console.log(`👤 Username: ${user.username}, Full Name: ${user.fullName}`);
 
-        res.json({ 
+        res.json({
           message: "Email verified and registration completed successfully",
           user: { id: user.id, username: user.username, email: user.email, fullName: user.fullName }
         });
       } else {
         const user = await storage.getUserByEmail(email);
         if (user) {
-          res.json({ 
+          res.json({
             message: "OTP verified successfully. You can now reset your password.",
             canResetPassword: true,
             email: user.email
@@ -251,7 +263,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/resend-otp", async (req, res) => {
     try {
       const { email } = forgotPasswordSchema.parse(req.body);
-      
+
       const user = await storage.getUserByEmail(email);
       if (!user) {
         return res.status(404).json({ message: "No account found with this email address" });
@@ -269,9 +281,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`🔐 RESEND OTP for ${email}: ${otpCode} (expires in 10 minutes)`);
 
-      res.json({ 
+      res.json({
         message: "New verification code sent to your email",
-        email 
+        email
       });
     } catch (error: any) {
       if (error.errors) {
@@ -281,14 +293,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  setInterval(async () => {
-    await storage.cleanupExpiredOtps();
-  }, 5 * 60 * 1000);
-
   app.post("/api/auth/reset-password", async (req, res) => {
     try {
       const { email, code, newPassword } = resetPasswordSchema.parse(req.body);
-      
+
       const otpRecord = await storage.checkOtpCodeValidity(email, code);
       if (!otpRecord) {
         return res.status(400).json({ message: "Invalid or expired verification code" });
@@ -305,7 +313,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`🔐 Password reset successful for: ${user.email}`);
 
-      res.json({ 
+      res.json({
         message: "Password updated successfully. You can now log in with your new password."
       });
     } catch (error: any) {
@@ -316,15 +324,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/auth/user", async (req: any, res) => {
+  app.get("/api/auth/user", async (req: Request, res) => {
     try {
-      if (!(req.session as any)?.userId) {
+      const userId = getAuthUserId(req);
+      if (!userId) {
         return res.status(401).json({ message: "Not authenticated" });
       }
 
-      const user = await storage.getUser((req.session as any).userId);
+      const user = await storage.getUser(userId);
       if (!user) {
-        req.session.destroy(() => {});
         return res.status(401).json({ message: "User not found" });
       }
 
@@ -336,17 +344,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/auth/logout", async (req: any, res) => {
-    req.session.destroy((err: any) => {
-      if (err) {
-        return res.status(500).json({ message: "Could not log out" });
-      }
-      res.json({ message: "Logged out successfully" });
-    });
+  app.post("/api/auth/logout", async (req: Request, res) => {
+    // With JWT, logout is handled client-side by removing the token
+    res.json({ message: "Logged out successfully" });
   });
 
   // ================== ADMIN ROUTES ==================
-  
+
   app.get("/api/admin/users", requireAdmin, async (req, res) => {
     try {
       const users = await storage.getAllUsers();
@@ -358,17 +362,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ================== UPLOAD ROUTES ==================
-  
-  app.post("/api/uploads", requireAuth, async (req: any, res) => {
+
+  app.post("/api/uploads", requireAuth, async (req: Request, res) => {
     try {
       const { subject, uploadType, title, description, textContent, externalLink } = req.body;
-      
+
       if (!subject || !uploadType || !title) {
         return res.status(400).json({ message: "Subject, upload type, and title are required" });
       }
 
       const upload = await storage.createUpload({
-        userId: req.session.userId,
+        userId: req.userId!,
         subject,
         uploadType,
         title,
@@ -393,9 +397,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/uploads/my", requireAuth, async (req: any, res) => {
+  app.get("/api/uploads/my", requireAuth, async (req: Request, res) => {
     try {
-      const uploads = await storage.getUploadsByUser(req.session.userId);
+      const uploads = await storage.getUploadsByUser(req.userId!);
       res.json(uploads);
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });
@@ -414,17 +418,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/uploads/:id", requireAuth, async (req: any, res) => {
+  app.patch("/api/uploads/:id", requireAuth, async (req: Request, res) => {
     try {
       const id = parseInt(req.params.id);
       const upload = await storage.getUpload(id);
-      
+
       if (!upload) {
         return res.status(404).json({ message: "Upload not found" });
       }
 
-      const user = await storage.getUser(req.session.userId);
-      if (upload.userId !== req.session.userId && user?.role !== "admin") {
+      const user = await storage.getUser(req.userId!);
+      if (upload.userId !== req.userId && user?.role !== "admin") {
         return res.status(403).json({ message: "Not authorized to edit this upload" });
       }
 
@@ -447,17 +451,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/uploads/:id", requireAuth, async (req: any, res) => {
+  app.delete("/api/uploads/:id", requireAuth, async (req: Request, res) => {
     try {
       const id = parseInt(req.params.id);
       const upload = await storage.getUpload(id);
-      
+
       if (!upload) {
         return res.status(404).json({ message: "Upload not found" });
       }
 
-      const user = await storage.getUser(req.session.userId);
-      if (upload.userId !== req.session.userId && user?.role !== "admin") {
+      const user = await storage.getUser(req.userId!);
+      if (upload.userId !== req.userId && user?.role !== "admin") {
         return res.status(403).json({ message: "Not authorized to delete this upload" });
       }
 
@@ -469,17 +473,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ================== DISCUSSION ROUTES ==================
-  
-  app.post("/api/discussions", requireAuth, async (req: any, res) => {
+
+  app.post("/api/discussions", requireAuth, async (req: Request, res) => {
     try {
       const { content, subject } = req.body;
-      
+
       if (!content) {
         return res.status(400).json({ message: "Content is required" });
       }
 
       const discussion = await storage.createDiscussion({
-        userId: req.session.userId,
+        userId: req.userId!,
         content,
         subject,
       });
@@ -500,9 +504,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/discussions/my", requireAuth, async (req: any, res) => {
+  app.get("/api/discussions/my", requireAuth, async (req: Request, res) => {
     try {
-      const discussions = await storage.getDiscussionsByUser(req.session.userId);
+      const discussions = await storage.getDiscussionsByUser(req.userId!);
       res.json(discussions);
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });
@@ -521,17 +525,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/discussions/:id", requireAuth, async (req: any, res) => {
+  app.patch("/api/discussions/:id", requireAuth, async (req: Request, res) => {
     try {
       const id = parseInt(req.params.id);
       const discussion = await storage.getDiscussion(id);
-      
+
       if (!discussion) {
         return res.status(404).json({ message: "Discussion not found" });
       }
 
-      const user = await storage.getUser(req.session.userId);
-      if (discussion.userId !== req.session.userId && user?.role !== "admin") {
+      const user = await storage.getUser(req.userId!);
+      if (discussion.userId !== req.userId && user?.role !== "admin") {
         return res.status(403).json({ message: "Not authorized to edit this discussion" });
       }
 
@@ -554,17 +558,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/discussions/:id", requireAuth, async (req: any, res) => {
+  app.delete("/api/discussions/:id", requireAuth, async (req: Request, res) => {
     try {
       const id = parseInt(req.params.id);
       const discussion = await storage.getDiscussion(id);
-      
+
       if (!discussion) {
         return res.status(404).json({ message: "Discussion not found" });
       }
 
-      const user = await storage.getUser(req.session.userId);
-      if (discussion.userId !== req.session.userId && user?.role !== "admin") {
+      const user = await storage.getUser(req.userId!);
+      if (discussion.userId !== req.userId && user?.role !== "admin") {
         return res.status(403).json({ message: "Not authorized to delete this discussion" });
       }
 
@@ -576,17 +580,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ================== ANNOUNCEMENT ROUTES ==================
-  
-  app.post("/api/announcements", requireAdmin, async (req: any, res) => {
+
+  app.post("/api/announcements", requireAdmin, async (req: Request, res) => {
     try {
       const { title, content, isPinned } = req.body;
-      
+
       if (!title || !content) {
         return res.status(400).json({ message: "Title and content are required" });
       }
 
       const announcement = await storage.createAnnouncement({
-        userId: req.session.userId,
+        userId: req.userId!,
         title,
         content,
       });
@@ -644,17 +648,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ================== SOLUTION ROUTES ==================
-  
-  app.post("/api/solutions", requireAuth, async (req: any, res) => {
+
+  app.post("/api/solutions", requireAuth, async (req: Request, res) => {
     try {
       const { subject, solutionType, title, description, textContent, externalLink } = req.body;
-      
+
       if (!subject || !solutionType || !title) {
         return res.status(400).json({ message: "Subject, solution type, and title are required" });
       }
 
       const solution = await storage.createSolution({
-        userId: req.session.userId,
+        userId: req.userId!,
         subject,
         solutionType,
         title,
@@ -679,9 +683,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/solutions/my", requireAuth, async (req: any, res) => {
+  app.get("/api/solutions/my", requireAuth, async (req: Request, res) => {
     try {
-      const solutions = await storage.getSolutionsByUser(req.session.userId);
+      const solutions = await storage.getSolutionsByUser(req.userId!);
       res.json(solutions);
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });
@@ -700,17 +704,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/solutions/:id", requireAuth, async (req: any, res) => {
+  app.delete("/api/solutions/:id", requireAuth, async (req: Request, res) => {
     try {
       const id = parseInt(req.params.id);
       const solution = await storage.getSolution(id);
-      
+
       if (!solution) {
         return res.status(404).json({ message: "Solution not found" });
       }
 
-      const user = await storage.getUser(req.session.userId);
-      if (solution.userId !== req.session.userId && user?.role !== "admin") {
+      const user = await storage.getUser(req.userId!);
+      if (solution.userId !== req.userId && user?.role !== "admin") {
         return res.status(403).json({ message: "Not authorized to delete this solution" });
       }
 
@@ -722,10 +726,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ================== BADGE ROUTES ==================
-  
-  app.get("/api/badges/my", requireAuth, async (req: any, res) => {
+
+  app.get("/api/badges/my", requireAuth, async (req: Request, res) => {
     try {
-      const badges = await storage.getBadgesByUser(req.session.userId);
+      const badges = await storage.getBadgesByUser(req.userId!);
       res.json(badges);
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });

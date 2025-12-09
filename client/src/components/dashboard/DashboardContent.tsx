@@ -18,13 +18,29 @@ interface DashboardContentProps {
   onPageChange: (page: string) => void;
 }
 
+import { motion, AnimatePresence } from "framer-motion";
+
+import { CourseSelection } from "./pages/CourseSelection";
+import { SetupProfile } from "./SetupProfile";
+import { ManageSubjectsFlow } from "./ManageSubjectsFlow";
+
+import { UpdateProfileFlow } from "./UpdateProfileFlow";
+
 export function DashboardContent({ user, activePage, onPageChange }: DashboardContentProps) {
   const renderPage = () => {
     switch (activePage) {
       case "dashboard":
         return <DashboardHome user={user} onPageChange={onPageChange} />;
       case "subjects":
-        return <MySubjects user={user} />;
+        return <MySubjects user={user} onPageChange={onPageChange} />;
+      case "course-selection":
+        return <CourseSelection user={user} onPageChange={onPageChange} />;
+      case "setup-profile":
+        return <SetupProfile user={user} />;
+      case "manage-subjects-flow":
+        return <ManageSubjectsFlow user={user} onPageChange={onPageChange} />;
+      case "update-profile-flow":
+        return <UpdateProfileFlow user={user} onPageChange={onPageChange} />;
       case "upload":
         return <UploadArea user={user} />;
       case "discussions":
@@ -40,7 +56,7 @@ export function DashboardContent({ user, activePage, onPageChange }: DashboardCo
       case "about":
         return <About user={user} />;
       case "settings":
-        return <SettingsPage user={user} />;
+        return <SettingsPage user={user} onPageChange={onPageChange} />;
       case "team":
         return <OurTeam user={user} />;
       case "resources":
@@ -54,7 +70,17 @@ export function DashboardContent({ user, activePage, onPageChange }: DashboardCo
 
   return (
     <div className="min-h-[calc(100vh-4rem)]">
-      {renderPage()}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activePage}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.2 }}
+        >
+          {renderPage()}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }

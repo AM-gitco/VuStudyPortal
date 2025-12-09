@@ -43,7 +43,7 @@ export function DashboardHome({ user, onPageChange }: DashboardHomeProps) {
       bgColor: "bg-green-50 dark:bg-green-900/20",
     },
     {
-      title: "Discussions", 
+      title: "Discussions",
       value: Array.isArray(discussions) ? discussions.length : 0,
       icon: MessageSquare,
       description: "Posts created",
@@ -95,8 +95,8 @@ export function DashboardHome({ user, onPageChange }: DashboardHomeProps) {
     },
   ];
 
-  const recentAnnouncements = Array.isArray(announcements) 
-    ? announcements.slice(0, 3) 
+  const recentAnnouncements = Array.isArray(announcements)
+    ? announcements.slice(0, 3)
     : [];
 
   return (
@@ -140,8 +140,8 @@ export function DashboardHome({ user, onPageChange }: DashboardHomeProps) {
                     <Icon className={`h-6 w-6 ${stat.color}`} />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{stat.title}</p>
+                    <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+                    <p className="text-sm text-muted-foreground">{stat.title}</p>
                   </div>
                 </div>
               </CardContent>
@@ -164,15 +164,15 @@ export function DashboardHome({ user, onPageChange }: DashboardHomeProps) {
               {quickActions.map((action) => {
                 const Icon = action.icon;
                 return (
-                  <button 
+                  <button
                     key={action.id}
                     data-testid={`quick-action-${action.id}`}
                     onClick={() => onPageChange?.(action.id)}
-                    className={`p-4 text-left rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all ${action.bgColor}`}
+                    className={`p-4 text-left rounded-xl border border-border hover:shadow-md transition-all ${action.bgColor}`}
                   >
                     <Icon className={`h-6 w-6 ${action.color} mb-2`} />
-                    <p className="font-medium text-gray-900 dark:text-white">{action.title}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{action.description}</p>
+                    <p className="font-medium text-foreground">{action.title}</p>
+                    <p className="text-sm text-muted-foreground">{action.description}</p>
                   </button>
                 );
               })}
@@ -195,18 +195,18 @@ export function DashboardHome({ user, onPageChange }: DashboardHomeProps) {
             {recentAnnouncements.length > 0 ? (
               <div className="space-y-4">
                 {recentAnnouncements.map((announcement: any) => (
-                  <div key={announcement.id} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div key={announcement.id} className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
                     <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center flex-shrink-0">
                       <Bell className="h-4 w-4 text-orange-600" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      <p className="text-sm font-medium text-foreground">
                         {announcement.title}
                       </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                      <p className="text-sm text-muted-foreground truncate">
                         {announcement.content}
                       </p>
-                      <p className="text-xs text-gray-400 mt-1">
+                      <p className="text-xs text-muted-foreground mt-1">
                         ID: {announcement.id}
                       </p>
                     </div>
@@ -214,14 +214,14 @@ export function DashboardHome({ user, onPageChange }: DashboardHomeProps) {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-muted-foreground">
                 <Bell className="w-12 h-12 mx-auto mb-3 opacity-20" />
                 <p>No announcements yet</p>
               </div>
             )}
-            <button 
+            <button
               onClick={() => onPageChange?.('announcements')}
-              className="w-full mt-4 text-center text-sm text-blue-600 hover:text-blue-700 font-medium"
+              className="w-full mt-4 text-center text-sm text-primary hover:text-primary/80 font-medium"
             >
               View All Announcements
             </button>

@@ -1,0 +1,600 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual University Authentication System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    'vu-primary': '#1E40AF',
+                    'vu-secondary': '#059669',
+                    'vu-background': '#F8FAFC',
+                    'vu-text': '#1F2937',
+                    'vu-accent': '#7C3AED',
+                    'vu-error': '#DC2626',
+                    'vu-success': '#059669'
+                },
+                fontFamily: {
+                    'inter': ['Inter', 'sans-serif']
+                },
+                borderRadius: {
+                    'vu': '8px'
+                },
+                spacing: {
+                    'vu': '20px'
+                }
+            }
+        }
+    };
+    </script>
+</head>
+<body class="bg-vu-background font-inter text-vu-text min-h-screen">
+    <!-- @COMPONENT: Header -->
+    <header class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <!-- Virtual University Logo Placeholder -->
+                    <div class="w-12 h-12 bg-vu-primary rounded-lg flex items-center justify-center">
+                        <i class="fas fa-graduation-cap text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-semibold text-vu-text">Virtual University</h1>
+                        <p class="text-sm text-gray-500">Student Authentication Portal</p>
+                    </div>
+                </div>
+                <div class="hidden md:flex items-center space-x-4">
+                    <span class="text-sm text-gray-500">Need help?</span>
+                    <a href="#" class="text-vu-primary hover:text-vu-accent transition-colors duration-200 text-sm font-medium">
+                        Contact Support
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- @END_COMPONENT: Header -->
+
+    <main class="flex-1 py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-md mx-auto">
+            
+            <!-- @COMPONENT: AuthFormWrapper - Login Form -->
+            <div id="loginForm" class="bg-white rounded-vu shadow-lg border border-gray-200 p-vu mb-8">
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl font-semibold text-vu-text mb-2">Student Login</h2>
+                    <p class="text-gray-500 text-sm">Access your Virtual University account</p>
+                </div>
+
+                <form class="space-y-6" data-implementation="Handle login authentication">
+                    <!-- @COMPONENT: Input - Email -->
+                    <div>
+                        <label for="loginEmail" class="block text-sm font-medium text-vu-text mb-2">
+                            VU Email Address
+                        </label>
+                        <div class="relative">
+                            <input 
+                                type="email" 
+                                id="loginEmail" 
+                                name="email"
+                                data-bind="loginForm.email"
+                                data-mock="true"
+                                placeholder="student@vu.edu.pk"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-vu focus:ring-2 focus:ring-vu-primary focus:border-vu-primary transition-colors duration-200 text-sm"
+                                required
+                            />
+                            <i class="fas fa-envelope absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Must be a valid @vu.edu.pk email address</p>
+                    </div>
+                    <!-- @END_COMPONENT: Input -->
+
+                    <!-- @COMPONENT: Input - Password -->
+                    <div>
+                        <label for="loginPassword" class="block text-sm font-medium text-vu-text mb-2">
+                            Password
+                        </label>
+                        <div class="relative">
+                            <input 
+                                type="password" 
+                                id="loginPassword" 
+                                name="password"
+                                data-bind="loginForm.password"
+                                data-mock="true"
+                                placeholder="Enter your password"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-vu focus:ring-2 focus:ring-vu-primary focus:border-vu-primary transition-colors duration-200 text-sm pr-10"
+                                required
+                            />
+                            <button type="button" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600" data-implementation="Toggle password visibility">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: Input -->
+
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="rememberMe" class="h-4 w-4 text-vu-primary focus:ring-vu-primary border-gray-300 rounded">
+                            <label for="rememberMe" class="ml-2 block text-sm text-gray-700">
+                                Remember me
+                            </label>
+                        </div>
+                        <button type="button" onclick="showForgotPassword()" class="text-sm text-vu-primary hover:text-vu-accent transition-colors duration-200 font-medium">
+                            Forgot password?
+                        </button>
+                    </div>
+
+                    <!-- @COMPONENT: Button - Login -->
+                    <button 
+                        type="submit" 
+                        data-event="click:handleLogin"
+                        data-implementation="Validate credentials and authenticate user"
+                        class="w-full bg-vu-primary text-white py-3 px-4 rounded-vu font-medium hover:bg-blue-700 focus:ring-2 focus:ring-vu-primary focus:ring-offset-2 transition-colors duration-200 flex items-center justify-center"
+                    >
+                        <span>Sign In</span>
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                    <!-- @END_COMPONENT: Button -->
+
+                    <div class="text-center">
+                        <span class="text-sm text-gray-500">Don't have an account? </span>
+                        <button type="button" onclick="showSignup()" class="text-sm text-vu-primary hover:text-vu-accent transition-colors duration-200 font-medium">
+                            Create Account
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <!-- @END_COMPONENT: AuthFormWrapper -->
+
+            <!-- @COMPONENT: AuthFormWrapper - Signup Form -->
+            <div id="signupForm" class="bg-white rounded-vu shadow-lg border border-gray-200 p-vu mb-8 hidden">
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl font-semibold text-vu-text mb-2">Create Student Account</h2>
+                    <p class="text-gray-500 text-sm">Join Virtual University's learning platform</p>
+                </div>
+
+                <form class="space-y-6" data-implementation="Handle student registration">
+                    <!-- @COMPONENT: Input - Username -->
+                    <div>
+                        <label for="signupUsername" class="block text-sm font-medium text-vu-text mb-2">
+                            Username
+                        </label>
+                        <input 
+                            type="text" 
+                            id="signupUsername" 
+                            name="username"
+                            data-bind="signupForm.username"
+                            data-mock="true"
+                            placeholder="Choose a unique username"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-vu focus:ring-2 focus:ring-vu-primary focus:border-vu-primary transition-colors duration-200 text-sm"
+                            required
+                        />
+                        <p class="text-xs text-gray-500 mt-1">3-20 characters, letters and numbers only</p>
+                    </div>
+
+                    <!-- @COMPONENT: Input - Full Name -->
+                    <div>
+                        <label for="signupName" class="block text-sm font-medium text-vu-text mb-2">
+                            Full Name
+                        </label>
+                        <input 
+                            type="text" 
+                            id="signupName" 
+                            name="fullName"
+                            data-bind="signupForm.fullName"
+                            data-mock="true"
+                            placeholder="Enter your full name"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-vu focus:ring-2 focus:ring-vu-primary focus:border-vu-primary transition-colors duration-200 text-sm"
+                            required
+                        />
+                    </div>
+
+                    <!-- @COMPONENT: Input - VU Email -->
+                    <div>
+                        <label for="signupEmail" class="block text-sm font-medium text-vu-text mb-2">
+                            VU Email Address
+                        </label>
+                        <div class="relative">
+                            <input 
+                                type="email" 
+                                id="signupEmail" 
+                                name="email"
+                                data-bind="signupForm.email"
+                                data-mock="true"
+                                placeholder="student@vu.edu.pk"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-vu focus:ring-2 focus:ring-vu-primary focus:border-vu-primary transition-colors duration-200 text-sm"
+                                required
+                            />
+                            <i class="fas fa-envelope absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                        <p class="text-xs text-vu-error mt-1">⚠️ Only @vu.edu.pk email addresses are allowed</p>
+                    </div>
+
+                    <!-- @COMPONENT: Input - Password -->
+                    <div>
+                        <label for="signupPassword" class="block text-sm font-medium text-vu-text mb-2">
+                            Password
+                        </label>
+                        <div class="relative">
+                            <input 
+                                type="password" 
+                                id="signupPassword" 
+                                name="password"
+                                data-bind="signupForm.password"
+                                data-mock="true"
+                                placeholder="Create a strong password"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-vu focus:ring-2 focus:ring-vu-primary focus:border-vu-primary transition-colors duration-200 text-sm pr-10"
+                                required
+                            />
+                            <button type="button" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600" data-implementation="Toggle password visibility">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="mt-2 space-y-1">
+                            <p class="text-xs text-gray-500">Password must contain:</p>
+                            <ul class="text-xs text-gray-500 space-y-1 ml-4">
+                                <li class="flex items-center"><i class="fas fa-check text-vu-success mr-2"></i>At least 8 characters</li>
+                                <li class="flex items-center"><i class="fas fa-check text-vu-success mr-2"></i>One uppercase letter</li>
+                                <li class="flex items-center"><i class="fas fa-check text-vu-success mr-2"></i>One lowercase letter</li>
+                                <li class="flex items-center"><i class="fas fa-check text-vu-success mr-2"></i>One number</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- @COMPONENT: Input - Confirm Password -->
+                    <div>
+                        <label for="confirmPassword" class="block text-sm font-medium text-vu-text mb-2">
+                            Confirm Password
+                        </label>
+                        <input 
+                            type="password" 
+                            id="confirmPassword" 
+                            name="confirmPassword"
+                            data-bind="signupForm.confirmPassword"
+                            data-mock="true"
+                            placeholder="Re-enter your password"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-vu focus:ring-2 focus:ring-vu-primary focus:border-vu-primary transition-colors duration-200 text-sm"
+                            required
+                        />
+                    </div>
+
+                    <div class="flex items-start">
+                        <input type="checkbox" id="agreeTerms" class="h-4 w-4 text-vu-primary focus:ring-vu-primary border-gray-300 rounded mt-1" required>
+                        <label for="agreeTerms" class="ml-2 block text-sm text-gray-700">
+                            I agree to Virtual University's <a href="#" class="text-vu-primary hover:text-vu-accent">Terms of Service</a> and <a href="#" class="text-vu-primary hover:text-vu-accent">Privacy Policy</a>
+                        </label>
+                    </div>
+
+                    <!-- @COMPONENT: Button - Create Account -->
+                    <button 
+                        type="submit" 
+                        data-event="click:handleSignup"
+                        data-implementation="Validate form and create new student account"
+                        class="w-full bg-vu-secondary text-white py-3 px-4 rounded-vu font-medium hover:bg-green-700 focus:ring-2 focus:ring-vu-secondary focus:ring-offset-2 transition-colors duration-200 flex items-center justify-center"
+                    >
+                        <span>Create Account</span>
+                        <i class="fas fa-user-plus ml-2"></i>
+                    </button>
+                    <!-- @END_COMPONENT: Button -->
+
+                    <div class="text-center">
+                        <span class="text-sm text-gray-500">Already have an account? </span>
+                        <button type="button" onclick="showLogin()" class="text-sm text-vu-primary hover:text-vu-accent transition-colors duration-200 font-medium">
+                            Sign In
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <!-- @END_COMPONENT: AuthFormWrapper -->
+
+            <!-- @COMPONENT: AuthFormWrapper - Forgot Password Form -->
+            <div id="forgotPasswordForm" class="bg-white rounded-vu shadow-lg border border-gray-200 p-vu mb-8 hidden">
+                <div class="text-center mb-8">
+                    <div class="mx-auto w-16 h-16 bg-vu-accent/10 rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-key text-vu-accent text-2xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-semibold text-vu-text mb-2">Reset Password</h2>
+                    <p class="text-gray-500 text-sm">Enter your VU email to receive reset instructions</p>
+                </div>
+
+                <form class="space-y-6" data-implementation="Handle password reset request">
+                    <!-- @COMPONENT: Input - Email -->
+                    <div>
+                        <label for="resetEmail" class="block text-sm font-medium text-vu-text mb-2">
+                            VU Email Address
+                        </label>
+                        <div class="relative">
+                            <input 
+                                type="email" 
+                                id="resetEmail" 
+                                name="email"
+                                data-bind="forgotPasswordForm.email"
+                                data-mock="true"
+                                placeholder="student@vu.edu.pk"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-vu focus:ring-2 focus:ring-vu-primary focus:border-vu-primary transition-colors duration-200 text-sm"
+                                required
+                            />
+                            <i class="fas fa-envelope absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">We'll send an OTP to your registered VU email</p>
+                    </div>
+                    <!-- @END_COMPONENT: Input -->
+
+                    <!-- @COMPONENT: Button - Send OTP -->
+                    <button 
+                        type="submit" 
+                        data-event="click:handleSendOTP"
+                        data-implementation="Generate and send OTP to user email"
+                        class="w-full bg-vu-accent text-white py-3 px-4 rounded-vu font-medium hover:bg-purple-700 focus:ring-2 focus:ring-vu-accent focus:ring-offset-2 transition-colors duration-200 flex items-center justify-center"
+                    >
+                        <span>Send Reset Code</span>
+                        <i class="fas fa-paper-plane ml-2"></i>
+                    </button>
+                    <!-- @END_COMPONENT: Button -->
+
+                    <div class="text-center">
+                        <button type="button" onclick="showLogin()" class="text-sm text-vu-primary hover:text-vu-accent transition-colors duration-200 font-medium">
+                            <i class="fas fa-arrow-left mr-1"></i>
+                            Back to Login
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <!-- @END_COMPONENT: AuthFormWrapper -->
+
+            <!-- @COMPONENT: AuthFormWrapper - OTP Verification Form -->
+            <div id="otpVerificationForm" class="bg-white rounded-vu shadow-lg border border-gray-200 p-vu mb-8 hidden">
+                <div class="text-center mb-8">
+                    <div class="mx-auto w-16 h-16 bg-vu-secondary/10 rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-shield-alt text-vu-secondary text-2xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-semibold text-vu-text mb-2">Verify Code</h2>
+                    <p class="text-gray-500 text-sm">Enter the 6-digit code sent to <span data-bind="user.email" class="font-medium text-vu-text">student@vu.edu.pk</span></p>
+                </div>
+
+                <form class="space-y-6" data-implementation="Handle OTP verification">
+                    <!-- @COMPONENT: Input - OTP -->
+                    <div>
+                        <label class="block text-sm font-medium text-vu-text mb-4 text-center">
+                            Verification Code
+                        </label>
+                        <div class="flex justify-center space-x-3">
+                            <!-- @FUNCTIONALITY: 6-digit OTP input with individual digit fields -->
+                            <input type="text" maxlength="1" data-bind="otpForm.digit1" data-mock="true" class="w-12 h-12 text-center text-lg font-semibold border border-gray-300 rounded-vu focus:ring-2 focus:ring-vu-primary focus:border-vu-primary transition-colors duration-200" />
+                            <input type="text" maxlength="1" data-bind="otpForm.digit2" data-mock="true" class="w-12 h-12 text-center text-lg font-semibold border border-gray-300 rounded-vu focus:ring-2 focus:ring-vu-primary focus:border-vu-primary transition-colors duration-200" />
+                            <input type="text" maxlength="1" data-bind="otpForm.digit3" data-mock="true" class="w-12 h-12 text-center text-lg font-semibold border border-gray-300 rounded-vu focus:ring-2 focus:ring-vu-primary focus:border-vu-primary transition-colors duration-200" />
+                            <input type="text" maxlength="1" data-bind="otpForm.digit4" data-mock="true" class="w-12 h-12 text-center text-lg font-semibold border border-gray-300 rounded-vu focus:ring-2 focus:ring-vu-primary focus:border-vu-primary transition-colors duration-200" />
+                            <input type="text" maxlength="1" data-bind="otpForm.digit5" data-mock="true" class="w-12 h-12 text-center text-lg font-semibold border border-gray-300 rounded-vu focus:ring-2 focus:ring-vu-primary focus:border-vu-primary transition-colors duration-200" />
+                            <input type="text" maxlength="1" data-bind="otpForm.digit6" data-mock="true" class="w-12 h-12 text-center text-lg font-semibold border border-gray-300 rounded-vu focus:ring-2 focus:ring-vu-primary focus:border-vu-primary transition-colors duration-200" />
+                        </div>
+                        <div class="text-center mt-4">
+                            <p class="text-xs text-gray-500">Code expires in <span class="font-medium text-vu-error" data-bind="otpTimer">05:00</span></p>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: Input -->
+
+                    <!-- @COMPONENT: Button - Verify OTP -->
+                    <button 
+                        type="submit" 
+                        data-event="click:handleOTPVerification"
+                        data-implementation="Validate OTP and proceed with authentication"
+                        class="w-full bg-vu-secondary text-white py-3 px-4 rounded-vu font-medium hover:bg-green-700 focus:ring-2 focus:ring-vu-secondary focus:ring-offset-2 transition-colors duration-200 flex items-center justify-center"
+                    >
+                        <span>Verify Code</span>
+                        <i class="fas fa-check ml-2"></i>
+                    </button>
+                    <!-- @END_COMPONENT: Button -->
+
+                    <div class="text-center space-y-3">
+                        <p class="text-sm text-gray-500">Didn't receive the code?</p>
+                        <button type="button" data-implementation="Resend OTP with rate limiting" class="text-sm text-vu-primary hover:text-vu-accent transition-colors duration-200 font-medium">
+                            Resend Code
+                        </button>
+                        <div>
+                            <button type="button" onclick="showForgotPassword()" class="text-sm text-gray-500 hover:text-vu-text transition-colors duration-200">
+                                <i class="fas fa-arrow-left mr-1"></i>
+                                Back to Reset
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <!-- @END_COMPONENT: AuthFormWrapper -->
+
+            <!-- @COMPONENT: Success Message -->
+            <div id="successMessage" class="bg-white rounded-vu shadow-lg border border-gray-200 p-vu mb-8 hidden">
+                <div class="text-center py-8">
+                    <div class="mx-auto w-20 h-20 bg-vu-success/10 rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-check-circle text-vu-success text-3xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-semibold text-vu-text mb-3">Authentication Successful!</h2>
+                    <p class="text-gray-500 text-sm mb-6">Welcome to Virtual University. Redirecting to your dashboard...</p>
+                    <div class="animate-pulse">
+                        <div class="h-2 bg-vu-primary/20 rounded-full overflow-hidden">
+                            <div class="h-full bg-vu-primary rounded-full animate-pulse" style="width: 60%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: Success Message -->
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 py-8 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-sm font-semibold text-vu-text mb-3">Student Resources</h3>
+                    <ul class="space-y-2 text-sm text-gray-500">
+                        <li><a href="#" class="hover:text-vu-primary transition-colors duration-200">Learning Management System</a></li>
+                        <li><a href="#" class="hover:text-vu-primary transition-colors duration-200">Student Portal</a></li>
+                        <li><a href="#" class="hover:text-vu-primary transition-colors duration-200">Academic Calendar</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-sm font-semibold text-vu-text mb-3">Support</h3>
+                    <ul class="space-y-2 text-sm text-gray-500">
+                        <li><a href="#" class="hover:text-vu-primary transition-colors duration-200">Technical Support</a></li>
+                        <li><a href="#" class="hover:text-vu-primary transition-colors duration-200">Account Recovery</a></li>
+                        <li><a href="#" class="hover:text-vu-primary transition-colors duration-200">Contact IT Help Desk</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-sm font-semibold text-vu-text mb-3">University</h3>
+                    <ul class="space-y-2 text-sm text-gray-500">
+                        <li><a href="#" class="hover:text-vu-primary transition-colors duration-200">About VU</a></li>
+                        <li><a href="#" class="hover:text-vu-primary transition-colors duration-200">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-vu-primary transition-colors duration-200">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-200 pt-6 mt-8 text-center">
+                <p class="text-sm text-gray-500">
+                    © 2024 Virtual University of Pakistan. All rights reserved.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- @STATE: currentForm:string = 'login' -->
+    <!-- @STATE: isLoading:boolean = false -->
+    <!-- @STATE: otpTimer:number = 300 -->
+
+    <script>
+        // TODO: Implement business logic, API calls, or state management
+        
+        (function() {
+            // Form navigation functions
+            window.showLogin = function() {
+                hideAllForms();
+                document.getElementById('loginForm').classList.remove('hidden');
+            };
+
+            window.showSignup = function() {
+                hideAllForms();
+                document.getElementById('signupForm').classList.remove('hidden');
+            };
+
+            window.showForgotPassword = function() {
+                hideAllForms();
+                document.getElementById('forgotPasswordForm').classList.remove('hidden');
+            };
+
+            window.showOTPVerification = function() {
+                hideAllForms();
+                document.getElementById('otpVerificationForm').classList.remove('hidden');
+                startOTPTimer();
+            };
+
+            window.showSuccess = function() {
+                hideAllForms();
+                document.getElementById('successMessage').classList.remove('hidden');
+            };
+
+            function hideAllForms() {
+                const forms = ['loginForm', 'signupForm', 'forgotPasswordForm', 'otpVerificationForm', 'successMessage'];
+                forms.forEach(formId => {
+                    document.getElementById(formId).classList.add('hidden');
+                });
+            }
+
+            // OTP Timer functionality
+            function startOTPTimer() {
+                let timeLeft = 300; // 5 minutes in seconds
+                const timerElement = document.querySelector('[data-bind="otpTimer"]');
+                
+                const timer = setInterval(function() {
+                    const minutes = Math.floor(timeLeft / 60);
+                    const seconds = timeLeft % 60;
+                    const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    
+                    if (timerElement) {
+                        timerElement.textContent = formattedTime;
+                    }
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(timer);
+                        // TODO: Handle OTP expiration
+                    }
+                    
+                    timeLeft--;
+                }, 1000);
+            }
+
+            // OTP input auto-focus functionality
+            function setupOTPInputs() {
+                const otpInputs = document.querySelectorAll('[data-bind^="otpForm.digit"]');
+                
+                otpInputs.forEach((input, index) => {
+                    input.addEventListener('input', function(e) {
+                        const value = e.target.value;
+                        
+                        // Only allow numbers
+                        if (!/^\d$/.test(value)) {
+                            e.target.value = '';
+                            return;
+                        }
+                        
+                        // Move to next input
+                        if (value && index < otpInputs.length - 1) {
+                            otpInputs[index + 1].focus();
+                        }
+                    });
+                    
+                    input.addEventListener('keydown', function(e) {
+                        // Handle backspace
+                        if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                            otpInputs[index - 1].focus();
+                        }
+                    });
+                });
+            }
+
+            // Email validation for VU domain
+            function validateVUEmail(email) {
+                const vuEmailPattern = /^[a-zA-Z0-9._%+-]+@vu\.edu\.pk$/;
+                return vuEmailPattern.test(email);
+            }
+
+            // Form submission handlers (placeholder implementations)
+            document.addEventListener('DOMContentLoaded', function() {
+                setupOTPInputs();
+                
+                // Demo form navigation for testing
+                document.addEventListener('click', function(e) {
+                    if (e.target.matches('[data-event*="handleLogin"]')) {
+                        e.preventDefault();
+                        // TODO: Implement login logic
+                        setTimeout(() => showSuccess(), 1000);
+                    }
+                    
+                    if (e.target.matches('[data-event*="handleSignup"]')) {
+                        e.preventDefault();
+                        // TODO: Implement signup logic with VU email validation
+                        setTimeout(() => showOTPVerification(), 1000);
+                    }
+                    
+                    if (e.target.matches('[data-event*="handleSendOTP"]')) {
+                        e.preventDefault();
+                        // TODO: Implement OTP generation and email sending
+                        setTimeout(() => showOTPVerification(), 1000);
+                    }
+                    
+                    if (e.target.matches('[data-event*="handleOTPVerification"]')) {
+                        e.preventDefault();
+                        // TODO: Implement OTP verification logic
+                        setTimeout(() => showSuccess(), 1000);
+                    }
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

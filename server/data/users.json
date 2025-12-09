@@ -1,0 +1,29 @@
+[
+  {
+    "username": "admin",
+    "fullName": "Admin User",
+    "email": "abdulmannan32519@gmail.com",
+    "password": "$2b$10$4buCtjRmoLG/mrJUTz4so.fqoRdsi/BjCPW08RFP4uI1PPujVoI5e",
+    "id": 1,
+    "role": "admin",
+    "isVerified": true,
+    "degreeProgram": null,
+    "subjects": null,
+    "createdAt": "2025-12-07T06:50:31.745Z"
+  },
+  {
+    "username": "mannam",
+    "fullName": "M.Abdul",
+    "email": "bc240425490mam@vu.edu.pk",
+    "password": "$2b$10$xKcP89t0u1gG.PoVPu4PyeTo9FruanZVpHL6Ue6Gz1HnbndZpxlPa",
+    "id": 2,
+    "role": "student",
+    "isVerified": true,
+    "degreeProgram": "BSCS",
+    "subjects": [
+      "CS301 - Data Structures",
+      "MTH102 - Calculus II"
+    ],
+    "createdAt": "2025-12-07T07:05:52.383Z"
+  }
+]

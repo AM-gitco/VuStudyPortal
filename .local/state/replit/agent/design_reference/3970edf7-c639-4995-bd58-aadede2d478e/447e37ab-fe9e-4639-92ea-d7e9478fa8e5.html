@@ -1,0 +1,702 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VU Student Authentication System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'vu-blue': '#1E40AF',
+                        'vu-green': '#059669',
+                        'vu-purple': '#7C3AED',
+                        'vu-red': '#DC2626',
+                        'vu-gray': '#1F2937',
+                        'vu-bg': '#F8FAFC',
+                    },
+                    backdropBlur: {
+                        'xs': '2px',
+                    }
+                }
+            },
+            darkMode: 'class'
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        .glassmorphism {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        .dark .glassmorphism {
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+        }
+        
+        .animated-bg {
+            background: linear-gradient(-45deg, #1E40AF, #7C3AED, #059669, #1E40AF);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+        
+        .dark .animated-bg {
+            background: linear-gradient(-45deg, #0F172A, #1E293B, #334155, #0F172A);
+            background-size: 400% 400%;
+        }
+        
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .floating-shapes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        
+        .shape {
+            position: absolute;
+            opacity: 0.1;
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        .shape:nth-child(1) {
+            left: 10%;
+            animation-delay: 0s;
+        }
+        
+        .shape:nth-child(2) {
+            left: 20%;
+            animation-delay: 1s;
+        }
+        
+        .shape:nth-child(3) {
+            left: 70%;
+            animation-delay: 2s;
+        }
+        
+        .shape:nth-child(4) {
+            left: 80%;
+            animation-delay: 3s;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        
+        .input-focus {
+            transition: all 0.3s ease;
+        }
+        
+        .input-focus:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(30, 64, 175, 0.2);
+        }
+        
+        .btn-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .btn-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(30, 64, 175, 0.3);
+        }
+        
+        .page-transition {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .otp-input {
+            width: 3rem;
+            height: 3rem;
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .loading-spinner {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="font-inter min-h-screen animated-bg dark:bg-gray-900 transition-colors duration-300">
+    <!-- Floating Background Shapes -->
+    <div class="floating-shapes">
+        <div class="shape w-20 h-20 bg-blue-300 rounded-full"></div>
+        <div class="shape w-16 h-16 bg-purple-300 rounded-lg"></div>
+        <div class="shape w-12 h-12 bg-green-300 rounded-full"></div>
+        <div class="shape w-24 h-24 bg-blue-200 rounded-lg"></div>
+    </div>
+
+    <!-- Theme Toggle -->
+    <div class="fixed top-6 right-6 z-50">
+        <button onclick="toggleTheme()" class="glassmorphism p-3 rounded-full text-vu-gray dark:text-white hover:scale-110 transition-all duration-300">
+            <i class="fas fa-moon dark:hidden text-xl"></i>
+            <i class="fas fa-sun hidden dark:inline text-xl"></i>
+        </button>
+    </div>
+
+    <!-- Header -->
+    <header class="relative z-10 pt-8 pb-4">
+        <div class="container mx-auto px-4 text-center">
+            <div class="glassmorphism inline-block p-4 rounded-2xl mb-4">
+                <!-- University Logo Placeholder -->
+                <div class="w-16 h-16 mx-auto mb-2 bg-vu-blue rounded-full flex items-center justify-center">
+                    <i class="fas fa-university text-white text-2xl"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-vu-gray dark:text-white">Virtual University</h1>
+                <p class="text-sm text-gray-600 dark:text-gray-300">Student Portal</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="relative z-10 container mx-auto px-4 pb-8">
+        <!-- Tab Navigation -->
+        <div class="max-w-md mx-auto mb-8">
+            <div class="glassmorphism p-2 rounded-xl">
+                <div class="flex space-x-1">
+                    <button onclick="showPage('login')" id="tab-login" class="tab-btn flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all duration-300 bg-vu-blue text-white">
+                        Login
+                    </button>
+                    <button onclick="showPage('signup')" id="tab-signup" class="tab-btn flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all duration-300 text-vu-gray dark:text-gray-300">
+                        Sign Up
+                    </button>
+                    <button onclick="showPage('forgot')" id="tab-forgot" class="tab-btn flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all duration-300 text-vu-gray dark:text-gray-300">
+                        Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- @COMPONENT: AuthFormWrapper -->
+        <div class="max-w-md mx-auto">
+            <!-- Login Form -->
+            <div id="login-page" class="page-transition glassmorphism p-8 rounded-2xl shadow-2xl">
+                <div class="text-center mb-6">
+                    <h2 class="text-3xl font-bold text-vu-gray dark:text-white mb-2">Welcome Back</h2>
+                    <p class="text-gray-600 dark:text-gray-300">Sign in to your student account</p>
+                </div>
+                
+                <form class="space-y-6" data-mock="true">
+                    <!-- @COMPONENT: Input (Email) -->
+                    <div>
+                        <label for="login-email" class="block text-sm font-medium text-vu-gray dark:text-gray-300 mb-2">
+                            Email Address
+                        </label>
+                        <div class="relative">
+                            <input 
+                                type="email" 
+                                id="login-email" 
+                                class="input-focus w-full px-4 py-3 bg-white/20 dark:bg-gray-800/50 border border-white/30 dark:border-gray-600 rounded-xl text-vu-gray dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-vu-blue focus:ring-2 focus:ring-vu-blue/20"
+                                placeholder="your.email@vu.edu.pk"
+                                data-bind="user.email"
+                                data-mock="true"
+                            />
+                            <i class="fas fa-envelope absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                        <!-- Error Message Placeholder -->
+                        <p class="text-vu-red text-xs mt-1 hidden" id="email-error">Please enter a valid VU email address</p>
+                    </div>
+                    
+                    <!-- @COMPONENT: Input (Password) -->
+                    <div>
+                        <label for="login-password" class="block text-sm font-medium text-vu-gray dark:text-gray-300 mb-2">
+                            Password
+                        </label>
+                        <div class="relative">
+                            <input 
+                                type="password" 
+                                id="login-password" 
+                                class="input-focus w-full px-4 py-3 bg-white/20 dark:bg-gray-800/50 border border-white/30 dark:border-gray-600 rounded-xl text-vu-gray dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-vu-blue focus:ring-2 focus:ring-vu-blue/20"
+                                placeholder="Enter your password"
+                                data-bind="user.password"
+                                data-mock="true"
+                            />
+                            <button type="button" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-vu-blue" onclick="togglePassword('login-password')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <label class="flex items-center">
+                            <input type="checkbox" class="w-4 h-4 text-vu-blue bg-transparent border-gray-300 rounded focus:ring-vu-blue" data-mock="true">
+                            <span class="ml-2 text-sm text-gray-600 dark:text-gray-300">Remember me</span>
+                        </label>
+                        <button type="button" onclick="showPage('forgot')" class="text-sm text-vu-blue hover:text-vu-purple transition-colors">
+                            Forgot password?
+                        </button>
+                    </div>
+                    
+                    <!-- @COMPONENT: Button (Submit) -->
+                    <button 
+                        type="submit" 
+                        class="btn-hover w-full bg-vu-blue hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2"
+                        data-event="click:handleLogin"
+                        data-implementation="Should validate form and authenticate user"
+                        data-mock="true"
+                    >
+                        <span>Sign In</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </form>
+                
+                <div class="mt-6 text-center">
+                    <p class="text-gray-600 dark:text-gray-300">
+                        Don't have an account? 
+                        <button onclick="showPage('signup')" class="text-vu-blue hover:text-vu-purple font-semibold transition-colors">
+                            Sign up here
+                        </button>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Signup Form -->
+            <div id="signup-page" class="page-transition glassmorphism p-8 rounded-2xl shadow-2xl hidden">
+                <div class="text-center mb-6">
+                    <h2 class="text-3xl font-bold text-vu-gray dark:text-white mb-2">Create Account</h2>
+                    <p class="text-gray-600 dark:text-gray-300">Join the Virtual University community</p>
+                </div>
+                
+                <form class="space-y-6" data-mock="true">
+                    <!-- @COMPONENT: Input (Name) -->
+                    <div>
+                        <label for="signup-name" class="block text-sm font-medium text-vu-gray dark:text-gray-300 mb-2">
+                            Full Name
+                        </label>
+                        <div class="relative">
+                            <input 
+                                type="text" 
+                                id="signup-name" 
+                                class="input-focus w-full px-4 py-3 bg-white/20 dark:bg-gray-800/50 border border-white/30 dark:border-gray-600 rounded-xl text-vu-gray dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-vu-blue focus:ring-2 focus:ring-vu-blue/20"
+                                placeholder="Enter your full name"
+                                data-bind="user.name"
+                                data-mock="true"
+                            />
+                            <i class="fas fa-user absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- @COMPONENT: Input (Username) -->
+                    <div>
+                        <label for="signup-username" class="block text-sm font-medium text-vu-gray dark:text-gray-300 mb-2">
+                            Username
+                        </label>
+                        <div class="relative">
+                            <input 
+                                type="text" 
+                                id="signup-username" 
+                                class="input-focus w-full px-4 py-3 bg-white/20 dark:bg-gray-800/50 border border-white/30 dark:border-gray-600 rounded-xl text-vu-gray dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-vu-blue focus:ring-2 focus:ring-vu-blue/20"
+                                placeholder="Choose a username"
+                                data-bind="user.username"
+                                data-mock="true"
+                            />
+                            <i class="fas fa-at absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- @COMPONENT: Input (VU Email) -->
+                    <div>
+                        <label for="signup-email" class="block text-sm font-medium text-vu-gray dark:text-gray-300 mb-2">
+                            VU Email Address
+                        </label>
+                        <div class="relative">
+                            <input 
+                                type="email" 
+                                id="signup-email" 
+                                class="input-focus w-full px-4 py-3 bg-white/20 dark:bg-gray-800/50 border border-white/30 dark:border-gray-600 rounded-xl text-vu-gray dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-vu-blue focus:ring-2 focus:ring-vu-blue/20"
+                                placeholder="your.email@vu.edu.pk"
+                                data-bind="user.email"
+                                data-mock="true"
+                            />
+                            <i class="fas fa-envelope absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Only @vu.edu.pk email addresses are allowed</p>
+                    </div>
+                    
+                    <!-- @COMPONENT: Input (Password) -->
+                    <div>
+                        <label for="signup-password" class="block text-sm font-medium text-vu-gray dark:text-gray-300 mb-2">
+                            Password
+                        </label>
+                        <div class="relative">
+                            <input 
+                                type="password" 
+                                id="signup-password" 
+                                class="input-focus w-full px-4 py-3 bg-white/20 dark:bg-gray-800/50 border border-white/30 dark:border-gray-600 rounded-xl text-vu-gray dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-vu-blue focus:ring-2 focus:ring-vu-blue/20"
+                                placeholder="Create a strong password"
+                                data-bind="user.password"
+                                data-mock="true"
+                            />
+                            <button type="button" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-vu-blue" onclick="togglePassword('signup-password')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- @COMPONENT: Input (Confirm Password) -->
+                    <div>
+                        <label for="signup-confirm" class="block text-sm font-medium text-vu-gray dark:text-gray-300 mb-2">
+                            Confirm Password
+                        </label>
+                        <div class="relative">
+                            <input 
+                                type="password" 
+                                id="signup-confirm" 
+                                class="input-focus w-full px-4 py-3 bg-white/20 dark:bg-gray-800/50 border border-white/30 dark:border-gray-600 rounded-xl text-vu-gray dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-vu-blue focus:ring-2 focus:ring-vu-blue/20"
+                                placeholder="Confirm your password"
+                                data-bind="user.confirmPassword"
+                                data-mock="true"
+                            />
+                            <button type="button" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-vu-blue" onclick="togglePassword('signup-confirm')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <input type="checkbox" id="terms" class="w-4 h-4 text-vu-blue bg-transparent border-gray-300 rounded focus:ring-vu-blue" data-mock="true">
+                        <label for="terms" class="ml-2 text-sm text-gray-600 dark:text-gray-300">
+                            I agree to the <a href="#" class="text-vu-blue hover:underline">Terms of Service</a> and 
+                            <a href="#" class="text-vu-blue hover:underline">Privacy Policy</a>
+                        </label>
+                    </div>
+                    
+                    <!-- @COMPONENT: Button (Submit) -->
+                    <button 
+                        type="submit" 
+                        class="btn-hover w-full bg-vu-green hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2"
+                        data-event="click:handleSignup"
+                        data-implementation="Should validate VU email domain and create account"
+                        data-mock="true"
+                    >
+                        <span>Create Account</span>
+                        <i class="fas fa-user-plus"></i>
+                    </button>
+                </form>
+                
+                <div class="mt-6 text-center">
+                    <p class="text-gray-600 dark:text-gray-300">
+                        Already have an account? 
+                        <button onclick="showPage('login')" class="text-vu-blue hover:text-vu-purple font-semibold transition-colors">
+                            Sign in here
+                        </button>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Forgot Password Form -->
+            <div id="forgot-page" class="page-transition glassmorphism p-8 rounded-2xl shadow-2xl hidden">
+                <div class="text-center mb-6">
+                    <h2 class="text-3xl font-bold text-vu-gray dark:text-white mb-2">Reset Password</h2>
+                    <p class="text-gray-600 dark:text-gray-300">Enter your VU email to receive reset instructions</p>
+                </div>
+                
+                <form class="space-y-6" data-mock="true">
+                    <!-- @COMPONENT: Input (Email) -->
+                    <div>
+                        <label for="forgot-email" class="block text-sm font-medium text-vu-gray dark:text-gray-300 mb-2">
+                            VU Email Address
+                        </label>
+                        <div class="relative">
+                            <input 
+                                type="email" 
+                                id="forgot-email" 
+                                class="input-focus w-full px-4 py-3 bg-white/20 dark:bg-gray-800/50 border border-white/30 dark:border-gray-600 rounded-xl text-vu-gray dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-vu-blue focus:ring-2 focus:ring-vu-blue/20"
+                                placeholder="your.email@vu.edu.pk"
+                                data-bind="user.resetEmail"
+                                data-mock="true"
+                            />
+                            <i class="fas fa-envelope absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- @COMPONENT: Button (Submit) -->
+                    <button 
+                        type="submit" 
+                        class="btn-hover w-full bg-vu-purple hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2"
+                        data-event="click:handleForgotPassword"
+                        data-implementation="Should validate VU email and send OTP"
+                        data-mock="true"
+                    >
+                        <span>Send Reset Code</span>
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+                
+                <div class="mt-6 text-center">
+                    <p class="text-gray-600 dark:text-gray-300">
+                        Remember your password? 
+                        <button onclick="showPage('login')" class="text-vu-blue hover:text-vu-purple font-semibold transition-colors">
+                            Back to login
+                        </button>
+                    </p>
+                    <button onclick="showPage('otp')" class="mt-4 text-sm text-vu-purple hover:underline transition-colors">
+                        Already have a code? Enter it here
+                    </button>
+                </div>
+            </div>
+
+            <!-- OTP Verification Form -->
+            <div id="otp-page" class="page-transition glassmorphism p-8 rounded-2xl shadow-2xl hidden">
+                <div class="text-center mb-6">
+                    <h2 class="text-3xl font-bold text-vu-gray dark:text-white mb-2">Enter Verification Code</h2>
+                    <p class="text-gray-600 dark:text-gray-300">We sent a 6-digit code to your email</p>
+                    <p class="text-sm text-vu-blue mt-2" data-mock="true">abc***@vu.edu.pk</p>
+                </div>
+                
+                <form class="space-y-6" data-mock="true">
+                    <!-- @COMPONENT: OTP Input -->
+                    <div>
+                        <label class="block text-sm font-medium text-vu-gray dark:text-gray-300 mb-4 text-center">
+                            Verification Code
+                        </label>
+                        <div class="flex justify-center space-x-3 mb-6">
+                            <!-- @MAP: Array(6).fill(0).map((_, index) => ( -->
+                            <input type="text" maxlength="1" class="otp-input input-focus bg-white/20 dark:bg-gray-800/50 border border-white/30 dark:border-gray-600 rounded-lg text-vu-gray dark:text-white focus:outline-none focus:border-vu-blue focus:ring-2 focus:ring-vu-blue/20" data-mock="true" />
+                            <input type="text" maxlength="1" class="otp-input input-focus bg-white/20 dark:bg-gray-800/50 border border-white/30 dark:border-gray-600 rounded-lg text-vu-gray dark:text-white focus:outline-none focus:border-vu-blue focus:ring-2 focus:ring-vu-blue/20" data-mock="true" />
+                            <input type="text" maxlength="1" class="otp-input input-focus bg-white/20 dark:bg-gray-800/50 border border-white/30 dark:border-gray-600 rounded-lg text-vu-gray dark:text-white focus:outline-none focus:border-vu-blue focus:ring-2 focus:ring-vu-blue/20" data-mock="true" />
+                            <input type="text" maxlength="1" class="otp-input input-focus bg-white/20 dark:bg-gray-800/50 border border-white/30 dark:border-gray-600 rounded-lg text-vu-gray dark:text-white focus:outline-none focus:border-vu-blue focus:ring-2 focus:ring-vu-blue/20" data-mock="true" />
+                            <input type="text" maxlength="1" class="otp-input input-focus bg-white/20 dark:bg-gray-800/50 border border-white/30 dark:border-gray-600 rounded-lg text-vu-gray dark:text-white focus:outline-none focus:border-vu-blue focus:ring-2 focus:ring-vu-blue/20" data-mock="true" />
+                            <input type="text" maxlength="1" class="otp-input input-focus bg-white/20 dark:bg-gray-800/50 border border-white/30 dark:border-gray-600 rounded-lg text-vu-gray dark:text-white focus:outline-none focus:border-vu-blue focus:ring-2 focus:ring-vu-blue/20" data-mock="true" />
+                            <!-- @END_MAP -->
+                        </div>
+                    </div>
+                    
+                    <!-- @COMPONENT: Button (Verify) -->
+                    <button 
+                        type="submit" 
+                        class="btn-hover w-full bg-vu-green hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2"
+                        data-event="click:handleOTPVerification"
+                        data-implementation="Should validate 6-digit OTP code"
+                        data-mock="true"
+                    >
+                        <span>Verify Code</span>
+                        <i class="fas fa-check-circle"></i>
+                    </button>
+                </form>
+                
+                <div class="mt-6 text-center space-y-3">
+                    <p class="text-gray-600 dark:text-gray-300">
+                        Didn't receive the code?
+                    </p>
+                    <button class="text-vu-blue hover:text-vu-purple font-semibold transition-colors block w-full" data-implementation="Should resend OTP after cooldown">
+                        Resend Code
+                    </button>
+                    <button onclick="showPage('forgot')" class="text-sm text-gray-500 hover:text-vu-blue transition-colors">
+                        Change email address
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: AuthFormWrapper -->
+
+        <!-- Success Message (Hidden by default) -->
+        <div id="success-message" class="max-w-md mx-auto mt-8 hidden">
+            <div class="glassmorphism p-6 rounded-2xl text-center">
+                <div class="w-16 h-16 bg-vu-green rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-check text-white text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-vu-gray dark:text-white mb-2">Success!</h3>
+                <p class="text-gray-600 dark:text-gray-300">You have been successfully authenticated.</p>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+            <div class="glassmorphism p-8 rounded-2xl text-center">
+                <div class="loading-spinner w-8 h-8 border-4 border-vu-blue border-t-transparent rounded-full mx-auto mb-4"></div>
+                <p class="text-vu-gray dark:text-white font-medium">Processing...</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="relative z-10 text-center py-8">
+        <div class="glassmorphism inline-block px-6 py-3 rounded-xl">
+            <p class="text-sm text-gray-600 dark:text-gray-300">
+                © 2024 Virtual University of Pakistan. All rights reserved.
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Theme Management
+        function toggleTheme() {
+            const html = document.documentElement;
+            const isDark = html.classList.contains('dark');
+            
+            if (isDark) {
+                html.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Initialize theme from localStorage
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            
+            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                document.documentElement.classList.add('dark');
+            }
+        })();
+
+        // Page Navigation
+        function showPage(pageId) {
+            // Hide all pages
+            const pages = ['login', 'signup', 'forgot', 'otp'];
+            pages.forEach(page => {
+                const element = document.getElementById(page + '-page');
+                if (element) {
+                    element.classList.add('hidden');
+                }
+                
+                // Update tab states
+                const tab = document.getElementById('tab-' + page);
+                if (tab) {
+                    tab.classList.remove('bg-vu-blue', 'text-white');
+                    tab.classList.add('text-vu-gray', 'dark:text-gray-300');
+                }
+            });
+            
+            // Show selected page
+            const targetPage = document.getElementById(pageId + '-page');
+            if (targetPage) {
+                targetPage.classList.remove('hidden');
+            }
+            
+            // Update active tab (only for main tabs)
+            const targetTab = document.getElementById('tab-' + pageId);
+            if (targetTab) {
+                targetTab.classList.add('bg-vu-blue', 'text-white');
+                targetTab.classList.remove('text-vu-gray', 'dark:text-gray-300');
+            }
+        }
+
+        // Password Toggle
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const icon = input.nextElementSibling.querySelector('i');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+
+        // OTP Auto-advance
+        (function() {
+            const otpInputs = document.querySelectorAll('.otp-input');
+            
+            otpInputs.forEach((input, index) => {
+                input.addEventListener('input', function(e) {
+                    if (e.target.value.length === 1 && index < otpInputs.length - 1) {
+                        otpInputs[index + 1].focus();
+                    }
+                });
+                
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                        otpInputs[index - 1].focus();
+                    }
+                });
+            });
+        })();
+
+        // Form Validation Demo (Real implementation would be more comprehensive)
+        document.addEventListener('DOMContentLoaded', function() {
+            const forms = document.querySelectorAll('form');
+            
+            forms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    // Show loading
+                    document.getElementById('loading-overlay').classList.remove('hidden');
+                    
+                    // Simulate API call
+                    setTimeout(() => {
+                        document.getElementById('loading-overlay').classList.add('hidden');
+                        
+                        // Show success (demo purposes)
+                        if (Math.random() > 0.3) { // 70% success rate for demo
+                            document.getElementById('success-message').classList.remove('hidden');
+                            setTimeout(() => {
+                                document.getElementById('success-message').classList.add('hidden');
+                            }, 3000);
+                        }
+                    }, 2000);
+                    
+                    // TODO: Implement real form validation and API calls
+                    // TODO: Add proper error handling and user feedback
+                    // TODO: Implement email validation for @vu.edu.pk domain
+                    // TODO: Add password strength validation
+                    // TODO: Implement OTP generation and verification
+                });
+            });
+        });
+
+        // Email domain validation demo
+        function validateVUEmail(email) {
+            return email.endsWith('@vu.edu.pk');
+        }
+
+        // Real-time email validation (demo)
+        document.addEventListener('DOMContentLoaded', function() {
+            const emailInputs = document.querySelectorAll('input[type="email"]');
+            
+            emailInputs.forEach(input => {
+                input.addEventListener('blur', function() {
+                    const email = this.value;
+                    const errorElement = document.getElementById('email-error');
+                    
+                    if (email && !validateVUEmail(email)) {
+                        if (errorElement) {
+                            errorElement.classList.remove('hidden');
+                        }
+                        this.classList.add('border-vu-red');
+                    } else {
+                        if (errorElement) {
+                            errorElement.classList.add('hidden');
+                        }
+                        this.classList.remove('border-vu-red');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

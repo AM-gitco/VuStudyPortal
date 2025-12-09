@@ -1,0 +1,144 @@
+{
+    "degreePrograms": [
+        {
+            "value": "BSCS",
+            "label": "BS Computer Science",
+            "color": "from-blue-500 to-indigo-500",
+            "emoji": "👨‍💻"
+        },
+        {
+            "value": "BSIT",
+            "label": "BS Information Technology",
+            "color": "from-cyan-500 to-teal-500",
+            "emoji": "🌐"
+        },
+        {
+            "value": "BSSE",
+            "label": "BS Software Engineering",
+            "color": "from-violet-500 to-purple-500",
+            "emoji": "🛠️"
+        },
+        {
+            "value": "MCS",
+            "label": "MS Computer Science",
+            "color": "from-amber-500 to-orange-500",
+            "emoji": "🎓"
+        },
+        {
+            "value": "MIT",
+            "label": "MS Information Technology",
+            "color": "from-rose-500 to-pink-500",
+            "emoji": "🔌"
+        },
+        {
+            "value": "MBA",
+            "label": "Master of Business Administration",
+            "color": "from-emerald-500 to-green-500",
+            "emoji": "💼"
+        },
+        {
+            "value": "BBA",
+            "label": "Bachelor of Business Administration",
+            "color": "from-lime-500 to-green-500",
+            "emoji": "📊"
+        },
+        {
+            "value": "BSPHY",
+            "label": "BS Physics",
+            "color": "from-red-500 to-rose-500",
+            "emoji": "⚛️"
+        },
+        {
+            "value": "BSMATH",
+            "label": "BS Mathematics",
+            "color": "from-yellow-500 to-amber-500",
+            "emoji": "🧮"
+        }
+    ],
+    "subjectEmojis": {
+        "Programming": "💻",
+        "Data Structures": "📚",
+        "Computer Architecture": "🖥️",
+        "Software Engineering": "🛠️",
+        "Operations Research": "📈",
+        "Differential Equations": "∫",
+        "Research Methods": "🔍",
+        "E-Commerce": "💳",
+        "Knowledge Management": "🧠",
+        "Web Design": "🕸️",
+        "Project Management": "📋",
+        "Algorithms": "🔢",
+        "Database": "💾",
+        "Advanced": "🚀"
+    },
+    "subjectsByDegreeAndSemester": {
+        "BSCS": {
+            "1": [
+                "CS201 - Introduction to Programming",
+                "MTH101 - Calculus I"
+            ],
+            "2": [
+                "CS301 - Data Structures",
+                "MTH102 - Calculus II"
+            ],
+            "3": [
+                "CS401 - Computer Architecture",
+                "CS301 - Data Structures"
+            ],
+            "4": [
+                "CS501 - Software Engineering",
+                "MTH601 - Operations Research"
+            ],
+            "5": [
+                "MTH632 - Differential Equations",
+                "STA630 - Research Methods"
+            ]
+        },
+        "BSIT": {
+            "1": [
+                "CS201 - Introduction to Programming",
+                "IT101 - IT Fundamentals"
+            ],
+            "2": [
+                "CS301 - Data Structures",
+                "IT201 - Networking Basics"
+            ],
+            "3": [
+                "IT430 - E-Commerce",
+                "IT301 - Database Systems"
+            ],
+            "4": [
+                "IT630 - Knowledge Management",
+                "STA630 - Research Methods"
+            ]
+        },
+        "BSSE": {
+            "1": [
+                "CS201 - Introduction to Programming",
+                "SE101 - Software Engineering Principles"
+            ],
+            "2": [
+                "CS301 - Data Structures",
+                "SE201 - Requirements Engineering"
+            ],
+            "3": [
+                "CS501 - Software Engineering",
+                "SE301 - Software Design"
+            ],
+            "4": [
+                "CS506 - Web Design and Development",
+                "SWE622 - Software Project Management"
+            ]
+        },
+        "MCS": {
+            "1": [
+                "CS701 - Advanced Computer Architecture",
+                "CS702 - Advanced Algorithms"
+            ],
+            "2": [
+                "CS703 - Advanced Database Systems",
+                "STA630 - Research Methods"
+            ]
+        }
+    }
+}

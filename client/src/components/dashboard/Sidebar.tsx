@@ -1,14 +1,14 @@
-import { 
-  LayoutDashboard, 
-  BookOpen, 
-  Upload, 
-  MessageSquare, 
-  Megaphone, 
-  Lightbulb, 
-  Bot, 
-  Award, 
-  Library, 
-  Users, 
+import {
+  LayoutDashboard,
+  BookOpen,
+  Upload,
+  MessageSquare,
+  Megaphone,
+  Lightbulb,
+  Bot,
+  Award,
+  Library,
+  Users,
   Info,
   LogOut,
   Settings,
@@ -19,7 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest, queryClient, clearToken } from "@/lib/queryClient";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface SidebarProps {
@@ -28,6 +28,8 @@ interface SidebarProps {
   onPageChange: (page: string) => void;
   isCollapsed: boolean;
   onToggleCollapse: () => void;
+  isMobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
 interface NavItem {
@@ -38,7 +40,7 @@ interface NavItem {
   adminOnly?: boolean;
 }
 
-export function Sidebar({ user, activePage, onPageChange, isCollapsed, onToggleCollapse }: SidebarProps) {
+export function Sidebar({ user, activePage, onPageChange, isCollapsed, onToggleCollapse, isMobileOpen = false, onMobileClose }: SidebarProps) {
   const { toast } = useToast();
 
   const logoutMutation = useMutation({
@@ -47,6 +49,8 @@ export function Sidebar({ user, activePage, onPageChange, isCollapsed, onToggleC
       return response.json();
     },
     onSuccess: () => {
+      // Clear JWT token
+      clearToken();
       queryClient.clear();
       toast({
         title: "Logged Out",
@@ -89,33 +93,34 @@ export function Sidebar({ user, activePage, onPageChange, isCollapsed, onToggleC
 
     const Icon = item.icon;
     const isActive = activePage === item.id;
+    const showLabel = !isCollapsed || window.innerWidth < 768;
 
     const button = (
       <button
         key={item.id}
         data-testid={`nav-${item.id}`}
         onClick={() => onPageChange(item.id)}
-        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-200 group ${
-          isActive
-            ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25'
-            : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50'
-        }`}
+        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-200 group ${isActive
+          ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25 font-semibold'
+          : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:translate-x-1'
+          }`}
       >
         <Icon size={20} className={`flex-shrink-0 ${isActive ? '' : 'group-hover:scale-110 transition-transform'}`} />
-        {!isCollapsed && (
+        {(!isCollapsed || window.innerWidth < 768) && (
           <>
-            <span className="flex-1 font-medium">{item.label}</span>
+            <span className="flex-1">{item.label}</span>
             {item.badge && (
-              <span className="px-2 py-0.5 text-xs bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 rounded-full font-medium">
+              <span className="px-2 py-0.5 text-xs bg-primary/10 text-primary rounded-full font-medium border border-primary/20">
                 {item.badge}
               </span>
             )}
+            {isActive && <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
           </>
         )}
       </button>
     );
 
-    if (isCollapsed) {
+    if (isCollapsed && window.innerWidth >= 768) {
       return (
         <Tooltip key={item.id} delayDuration={0}>
           <TooltipTrigger asChild>
@@ -132,79 +137,57 @@ export function Sidebar({ user, activePage, onPageChange, isCollapsed, onToggleC
   };
 
   return (
-    <div className={`fixed left-0 top-0 h-full bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 transition-all duration-300 ease-in-out ${isCollapsed ? 'w-[72px]' : 'w-64'} z-40 flex flex-col`}>
+    <div className={`fixed inset-y-0 left-0 bg-background border-r border-border transition-transform duration-300 ease-in-out z-50 flex flex-col shadow-xl 
+      ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'} 
+      md:translate-x-0 ${isCollapsed ? 'md:w-[72px]' : 'md:w-64'} w-64`}
+    >
       {/* Header with Logo */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+      <div className="p-4 border-b border-border/50">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-              <span className="text-white font-bold text-lg">VU</span>
+            <div className="w-10 h-10 bg-primary/90 text-primary-foreground rounded-xl flex items-center justify-center shadow-lg shadow-primary/20 bg-gradient-to-br from-primary to-primary/80">
+              <span className="font-bold text-lg">VU</span>
             </div>
-            {!isCollapsed && (
+            {(!isCollapsed || window.innerWidth < 768) && (
               <div>
-                <h1 className="font-bold text-gray-900 dark:text-white text-lg">VU Portal</h1>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Student Support</p>
+                <h1 className="font-bold text-foreground text-lg tracking-tight">VU Portal</h1>
+                <p className="text-xs text-muted-foreground">Student Support</p>
               </div>
             )}
           </div>
+
+          {/* Mobile Close Button */}
+          {isMobileOpen && onMobileClose && (
+            <Button variant="ghost" size="icon" className="md:hidden" onClick={onMobileClose}>
+              <ChevronLeft size={20} />
+            </Button>
+          )}
         </div>
       </div>
 
-      {/* Toggle Button */}
+      {/* Toggle Button - Desktop Only */}
       <button
         onClick={onToggleCollapse}
         data-testid="sidebar-toggle"
-        className="absolute -right-3 top-20 w-6 h-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all z-50"
+        className="hidden md:flex absolute -right-3 top-20 w-6 h-6 bg-background border border-border rounded-full items-center justify-center shadow-md hover:shadow-lg transition-all z-50 hover:bg-accent hover:text-accent-foreground"
       >
         {isCollapsed ? (
-          <ChevronRight size={14} className="text-gray-600 dark:text-gray-300" />
+          <ChevronRight size={14} className="text-muted-foreground" />
         ) : (
-          <ChevronLeft size={14} className="text-gray-600 dark:text-gray-300" />
+          <ChevronLeft size={14} className="text-muted-foreground" />
         )}
       </button>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-4 px-3">
+      <nav className="flex-1 overflow-y-auto py-4 px-3 custom-scrollbar">
         <div className="space-y-1">
           {navItems.map(renderNavItem)}
         </div>
       </nav>
 
       {/* Bottom Section */}
-      <div className="p-3 border-t border-gray-200 dark:border-gray-800 space-y-1">
+      <div className="p-3 border-t border-border/50 space-y-1 bg-background">
         {bottomNavItems.map(renderNavItem)}
-        
-        {isCollapsed ? (
-          <Tooltip delayDuration={0}>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                data-testid="button-logout"
-                className="w-full justify-center text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                onClick={() => logoutMutation.mutate()}
-                disabled={logoutMutation.isPending}
-              >
-                <LogOut size={20} />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="right" className="font-medium">
-              Logout
-            </TooltipContent>
-          </Tooltip>
-        ) : (
-          <Button
-            variant="ghost"
-            size="sm"
-            data-testid="button-logout"
-            className="w-full justify-start gap-3 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-            onClick={() => logoutMutation.mutate()}
-            disabled={logoutMutation.isPending}
-          >
-            <LogOut size={20} />
-            <span className="font-medium">{logoutMutation.isPending ? 'Logging out...' : 'Logout'}</span>
-          </Button>
-        )}
       </div>
     </div>
   );

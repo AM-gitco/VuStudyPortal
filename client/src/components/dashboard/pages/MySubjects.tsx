@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
-export function MySubjects({ user }: { user: any }) {
+export function MySubjects({ user, onPageChange }: { user: any; onPageChange: (page: string) => void }) {
   const subjects = user?.subjects || [];
   const degreeProgram = user?.degreeProgram || "Not Set";
 
@@ -19,24 +19,24 @@ export function MySubjects({ user }: { user: any }) {
   };
 
   const mockSubjectData = {
-    "CS201": { 
-      progress: 75, 
-      assignments: 3, 
-      resources: 12, 
+    "CS201": {
+      progress: 75,
+      assignments: 3,
+      resources: 12,
       discussions: 8,
       color: "bg-blue-500"
     },
-    "CS301": { 
-      progress: 60, 
-      assignments: 2, 
-      resources: 8, 
+    "CS301": {
+      progress: 60,
+      assignments: 2,
+      resources: 8,
       discussions: 5,
       color: "bg-green-500"
     },
-    "MTH601": { 
-      progress: 45, 
-      assignments: 1, 
-      resources: 15, 
+    "MTH601": {
+      progress: 45,
+      assignments: 1,
+      resources: 15,
       discussions: 12,
       color: "bg-purple-500"
     },
@@ -51,7 +51,7 @@ export function MySubjects({ user }: { user: any }) {
             {degreeProgram} • {subjects.length} subjects enrolled
           </p>
         </div>
-        <Button variant="outline">
+        <Button variant="outline" onClick={() => onPageChange('manage-subjects-flow')}>
           <BookOpen className="mr-2" size={16} />
           Manage Subjects
         </Button>
@@ -67,7 +67,7 @@ export function MySubjects({ user }: { user: any }) {
             <p className="text-gray-500 mb-4">
               You haven't selected any subjects yet. Complete your profile setup to get started.
             </p>
-            <Button>Complete Setup</Button>
+            <Button onClick={() => onPageChange('manage-subjects-flow')}>Complete Setup</Button>
           </CardContent>
         </Card>
       ) : (
@@ -95,7 +95,7 @@ export function MySubjects({ user }: { user: any }) {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <Progress value={data.progress} className="h-2" />
-                  
+
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div className="flex items-center">
                       <Clock className="mr-2 h-4 w-4 text-gray-500" />
@@ -115,14 +115,12 @@ export function MySubjects({ user }: { user: any }) {
                     </div>
                   </div>
 
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline" className="flex-1">
-                      View Resources
-                    </Button>
-                    <Button size="sm" className="flex-1">
-                      Join Discussion
-                    </Button>
-                  </div>
+                  <Button size="default" variant="outline" className="flex-1 py-5" onClick={() => onPageChange('resources')}>
+                    View Resources
+                  </Button>
+                  <Button size="default" className="flex-1 py-5" onClick={() => onPageChange('discussions')}>
+                    Join Discussion
+                  </Button>
                 </CardContent>
               </Card>
             );
@@ -144,7 +142,7 @@ export function MySubjects({ user }: { user: any }) {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center">

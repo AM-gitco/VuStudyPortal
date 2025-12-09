@@ -1,42 +1,106 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
-type Theme = "light" | "dark";
+type Theme = "light" | "dark" | "system";
+type LightColor = "default" | "theme-ocean" | "theme-sunset" | "theme-forest";
+type DarkColor = "default" | "theme-midnight" | "theme-ember" | "theme-aurora";
 
 interface ThemeContextType {
   theme: Theme;
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
+  resolvedTheme: "light" | "dark";
+  lightColor: LightColor;
+  setLightColor: (color: LightColor) => void;
+  darkColor: DarkColor;
+  setDarkColor: (color: DarkColor) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  // Mode state
   const [theme, setTheme] = useState<Theme>(() => {
-    // Get theme from localStorage or default to light (only in browser)
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("vu-portal-theme");
-      const initialTheme = (saved as Theme) || "light";
-      // Set initial class before hydration
-      document.documentElement.classList.toggle("dark", initialTheme === "dark");
-      return initialTheme;
+      return (localStorage.getItem("vu-portal-theme") as Theme) || "system";
     }
-    return "light";
+    return "system";
   });
 
-  useEffect(() => {
-    // Update document class and localStorage when theme changes
+  // Color preferences
+  const [lightColor, setLightColor] = useState<LightColor>(() => {
     if (typeof window !== "undefined") {
-      document.documentElement.classList.toggle("dark", theme === "dark");
-      localStorage.setItem("vu-portal-theme", theme);
+      return (localStorage.getItem("vu-portal-light-color") as LightColor) || "default";
     }
-  }, [theme]);
+    return "default";
+  });
+
+  const [darkColor, setDarkColor] = useState<DarkColor>(() => {
+    if (typeof window !== "undefined") {
+      return (localStorage.getItem("vu-portal-dark-color") as DarkColor) || "theme-midnight";
+    }
+    return "theme-midnight";
+  });
+
+  const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
+
+  useEffect(() => {
+    const applyTheme = () => {
+      const root = window.document.documentElement;
+      let targetMode = theme;
+
+      if (theme === "system") {
+        targetMode = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      }
+
+      // Remove all theme classes first
+      const allThemes = [
+        "light", "dark",
+        "theme-ocean", "theme-sunset", "theme-forest",
+        "theme-midnight", "theme-ember", "theme-aurora"
+      ];
+      root.classList.remove(...allThemes);
+
+      // Apply mode class
+      root.classList.add(targetMode);
+      setResolvedTheme(targetMode as "light" | "dark");
+
+      // Apply color theme based on resolved mode
+      if (targetMode === "light" && lightColor !== "default") {
+        root.classList.add(lightColor);
+      } else if (targetMode === "dark" && darkColor !== "default") {
+        root.classList.add(darkColor);
+      }
+
+      // Persist settings
+      localStorage.setItem("vu-portal-theme", theme);
+      localStorage.setItem("vu-portal-light-color", lightColor);
+      localStorage.setItem("vu-portal-dark-color", darkColor);
+    };
+
+    applyTheme();
+
+    if (theme === "system") {
+      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+      const handleChange = () => applyTheme();
+      mediaQuery.addEventListener("change", handleChange);
+      return () => mediaQuery.removeEventListener("change", handleChange);
+    }
+  }, [theme, lightColor, darkColor]);
 
   const toggleTheme = () => {
-    setTheme(theme === "light" ? "dark" : "light");
+    setTheme((prev) => {
+      if (prev === "light") return "dark";
+      if (prev === "dark") return "system";
+      return "light";
+    });
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
+    <ThemeContext.Provider value={{
+      theme, setTheme, toggleTheme, resolvedTheme,
+      lightColor, setLightColor,
+      darkColor, setDarkColor
+    }}>
       {children}
     </ThemeContext.Provider>
   );

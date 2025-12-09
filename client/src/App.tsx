@@ -28,8 +28,12 @@ function Router() {
       <Route path="/">
         {isAuthenticated ? <Dashboard /> : <AuthPage />}
       </Route>
-      <Route path="/auth" component={AuthPage} />
-      <Route path="/dashboard" component={Dashboard} />
+      <Route path="/auth">
+        {isAuthenticated ? <Dashboard /> : <AuthPage />}
+      </Route>
+      <Route path="/dashboard">
+        {isAuthenticated ? <Dashboard /> : <AuthPage />}
+      </Route>
       <Route component={NotFound} />
     </Switch>
   );

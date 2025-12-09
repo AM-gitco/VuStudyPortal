@@ -1,11 +1,13 @@
-import { 
+import {
   users, otpCodes, pendingUsers, uploads, discussions, announcements, solutions, badges,
   type User, type InsertUser, type InsertOtp, type OtpCode, type PendingUser, type InsertPendingUser,
   type Upload, type InsertUpload, type Discussion, type InsertDiscussion,
   type Announcement, type InsertAnnouncement, type Solution, type InsertSolution,
   type Badge, type InsertBadge
 } from "@shared/schema";
-import { eq, and, gt } from "drizzle-orm";
+import { eq, and, gt, desc, sql } from "drizzle-orm";
+import { db } from "./db";
+import bcrypt from "bcryptjs";
 
 export interface IStorage {
   // User operations
@@ -17,12 +19,12 @@ export interface IStorage {
   updateUser(id: number, updates: Partial<User>): Promise<User | undefined>;
   updateUserProfile(userId: number, degreeProgram: string, subjects: string[]): Promise<User | undefined>;
   getAllUsers(): Promise<User[]>;
-  
+
   // Pending user operations
   createPendingUser(user: InsertPendingUser): Promise<PendingUser>;
   getPendingUserByEmail(email: string): Promise<PendingUser | undefined>;
   deletePendingUser(email: string): Promise<void>;
-  
+
   // OTP operations
   createOtpCode(otp: InsertOtp): Promise<OtpCode>;
   getValidOtpCode(email: string, code: string): Promise<OtpCode | undefined>;
@@ -75,124 +77,72 @@ export interface IStorage {
   getAllBadges(): Promise<Badge[]>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private pendingUsers: Map<string, PendingUser>;
-  private otpCodes: Map<number, OtpCode>;
-  private uploads: Map<number, Upload>;
-  private discussions: Map<number, Discussion>;
-  private announcements: Map<number, Announcement>;
-  private solutions: Map<number, Solution>;
-  private badges: Map<number, Badge>;
-  private currentUserId: number;
-  private currentPendingUserId: number;
-  private currentOtpId: number;
-  private currentUploadId: number;
-  private currentDiscussionId: number;
-  private currentAnnouncementId: number;
-  private currentSolutionId: number;
-  private currentBadgeId: number;
-
+export class DatabaseStorage implements IStorage {
   constructor() {
-    this.users = new Map();
-    this.pendingUsers = new Map();
-    this.otpCodes = new Map();
-    this.uploads = new Map();
-    this.discussions = new Map();
-    this.announcements = new Map();
-    this.solutions = new Map();
-    this.badges = new Map();
-    this.currentUserId = 1;
-    this.currentPendingUserId = 1;
-    this.currentOtpId = 1;
-    this.currentUploadId = 1;
-    this.currentDiscussionId = 1;
-    this.currentAnnouncementId = 1;
-    this.currentSolutionId = 1;
-    this.currentBadgeId = 1;
-    
+    // Initialize admin user on startup
     this.initializeAdminUser();
   }
 
   private async initializeAdminUser() {
     const adminEmail = "abdulmannan32519@gmail.com";
     const existingAdmin = await this.getUserByEmail(adminEmail);
-    
+
     if (!existingAdmin) {
-      const bcrypt = await import("bcrypt");
       const hashedPassword = await bcrypt.hash("Mannamkhan@786", 10);
-      
+
       await this.createAdminUser({
         username: "admin",
         fullName: "Admin User",
         email: adminEmail,
         password: hashedPassword,
       });
-      
+
       console.log("🔧 Admin user initialized successfully");
       console.log(`📧 Admin Email: ${adminEmail}`);
-      console.log(`🔑 Admin Password: Mannamkhan@786`);
     }
   }
 
   // User operations
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id)).limit(1);
+    return user;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+    const [user] = await db.select().from(users).where(eq(users.username, username)).limit(1);
+    return user;
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.email === email,
-    );
+    const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+    return user;
   }
 
   async getAllUsers(): Promise<User[]> {
-    return Array.from(this.users.values());
+    return await db.select().from(users).orderBy(desc(users.createdAt));
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentUserId++;
-    const user: User = {
+    const [user] = await db.insert(users).values({
       ...insertUser,
-      id,
       role: "student",
       isVerified: false,
-      degreeProgram: null,
-      subjects: null,
-      createdAt: new Date(),
-    };
-    this.users.set(id, user);
+    }).returning();
     return user;
   }
 
   async createAdminUser(insertUser: Omit<InsertUser, 'email'> & { email: string }): Promise<User> {
-    const id = this.currentUserId++;
-    const user: User = {
+    const [user] = await db.insert(users).values({
       ...insertUser,
-      id,
       role: "admin",
       isVerified: true,
-      degreeProgram: null,
-      subjects: null,
-      createdAt: new Date(),
-    };
-    this.users.set(id, user);
+    }).returning();
     return user;
   }
 
   async updateUser(id: number, updates: Partial<User>): Promise<User | undefined> {
-    const user = this.users.get(id);
-    if (!user) return undefined;
-    
-    const updatedUser = { ...user, ...updates };
-    this.users.set(id, updatedUser);
-    return updatedUser;
+    const [user] = await db.update(users).set(updates).where(eq(users.id, id)).returning();
+    return user;
   }
 
   async updateUserProfile(userId: number, degreeProgram: string, subjects: string[]): Promise<User | undefined> {
@@ -201,123 +151,97 @@ export class MemStorage implements IStorage {
 
   // Pending user operations
   async createPendingUser(insertPendingUser: InsertPendingUser): Promise<PendingUser> {
-    const id = this.currentPendingUserId++;
-    const pendingUser: PendingUser = {
-      ...insertPendingUser,
-      id,
-      createdAt: new Date(),
-    };
-    this.pendingUsers.set(pendingUser.email, pendingUser);
+    // Delete any existing pending user with same email first
+    await db.delete(pendingUsers).where(eq(pendingUsers.email, insertPendingUser.email));
+    const [pendingUser] = await db.insert(pendingUsers).values(insertPendingUser).returning();
     return pendingUser;
   }
 
   async getPendingUserByEmail(email: string): Promise<PendingUser | undefined> {
-    return this.pendingUsers.get(email);
+    const [pendingUser] = await db.select().from(pendingUsers).where(eq(pendingUsers.email, email)).limit(1);
+    return pendingUser;
   }
 
   async deletePendingUser(email: string): Promise<void> {
-    this.pendingUsers.delete(email);
+    await db.delete(pendingUsers).where(eq(pendingUsers.email, email));
   }
 
   // OTP operations
   async createOtpCode(insertOtp: InsertOtp): Promise<OtpCode> {
-    const id = this.currentOtpId++;
-    const otpCode: OtpCode = {
+    const [otp] = await db.insert(otpCodes).values({
       ...insertOtp,
-      id,
       isUsed: false,
-      createdAt: new Date(),
-    };
-    this.otpCodes.set(id, otpCode);
-    return otpCode;
+    }).returning();
+    return otp;
   }
 
   async getValidOtpCode(email: string, code: string): Promise<OtpCode | undefined> {
     const now = new Date();
-    return Array.from(this.otpCodes.values()).find(
-      (otp) => 
-        otp.email === email && 
-        otp.code === code && 
-        !otp.isUsed && 
-        otp.expiresAt > now
-    );
+    const [otp] = await db.select().from(otpCodes).where(
+      and(
+        eq(otpCodes.email, email),
+        eq(otpCodes.code, code),
+        eq(otpCodes.isUsed, false),
+        gt(otpCodes.expiresAt, now)
+      )
+    ).limit(1);
+    return otp;
   }
 
   async checkOtpCodeValidity(email: string, code: string): Promise<OtpCode | undefined> {
     const now = new Date();
-    return Array.from(this.otpCodes.values()).find(
-      (otp) => otp.email === email && otp.code === code && otp.expiresAt > now,
-    );
+    const [otp] = await db.select().from(otpCodes).where(
+      and(
+        eq(otpCodes.email, email),
+        eq(otpCodes.code, code),
+        gt(otpCodes.expiresAt, now)
+      )
+    ).limit(1);
+    return otp;
   }
 
   async markOtpAsUsed(id: number): Promise<void> {
-    const otp = this.otpCodes.get(id);
-    if (otp) {
-      this.otpCodes.set(id, { ...otp, isUsed: true });
-    }
+    await db.update(otpCodes).set({ isUsed: true }).where(eq(otpCodes.id, id));
   }
 
   async cleanupExpiredOtps(): Promise<void> {
     const now = new Date();
-    for (const [id, otp] of Array.from(this.otpCodes.entries())) {
-      if (otp.expiresAt <= now) {
-        this.otpCodes.delete(id);
-      }
-    }
+    await db.delete(otpCodes).where(sql`${otpCodes.expiresAt} <= ${now}`);
   }
 
   // Upload operations
   async createUpload(insertUpload: InsertUpload): Promise<Upload> {
-    const id = this.currentUploadId++;
-    const upload: Upload = {
-      id,
-      userId: insertUpload.userId ?? 0,
-      subject: insertUpload.subject,
-      uploadType: insertUpload.uploadType,
-      title: insertUpload.title,
-      description: insertUpload.description ?? null,
-      fileUrl: insertUpload.fileUrl ?? null,
-      textContent: insertUpload.textContent ?? null,
-      externalLink: insertUpload.externalLink ?? null,
+    const [upload] = await db.insert(uploads).values({
+      ...insertUpload,
       isApproved: false,
-      createdAt: new Date(),
-    };
-    this.uploads.set(id, upload);
+    }).returning();
     return upload;
   }
 
   async getUpload(id: number): Promise<Upload | undefined> {
-    return this.uploads.get(id);
+    const [upload] = await db.select().from(uploads).where(eq(uploads.id, id)).limit(1);
+    return upload;
   }
 
   async getAllUploads(): Promise<Upload[]> {
-    return Array.from(this.uploads.values()).sort((a, b) => 
-      (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0)
-    );
+    return await db.select().from(uploads).orderBy(desc(uploads.createdAt));
   }
 
   async getUploadsByUser(userId: number): Promise<Upload[]> {
-    return Array.from(this.uploads.values())
-      .filter(upload => upload.userId === userId)
-      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+    return await db.select().from(uploads).where(eq(uploads.userId, userId)).orderBy(desc(uploads.createdAt));
   }
 
   async getUploadsBySubject(subject: string): Promise<Upload[]> {
-    return Array.from(this.uploads.values())
-      .filter(upload => upload.subject === subject)
-      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+    return await db.select().from(uploads).where(eq(uploads.subject, subject)).orderBy(desc(uploads.createdAt));
   }
 
   async updateUpload(id: number, updates: Partial<Upload>): Promise<Upload | undefined> {
-    const upload = this.uploads.get(id);
-    if (!upload) return undefined;
-    const updatedUpload = { ...upload, ...updates };
-    this.uploads.set(id, updatedUpload);
-    return updatedUpload;
+    const [upload] = await db.update(uploads).set(updates).where(eq(uploads.id, id)).returning();
+    return upload;
   }
 
   async deleteUpload(id: number): Promise<void> {
-    this.uploads.delete(id);
+    await db.delete(uploads).where(eq(uploads.id, id));
   }
 
   async approveUpload(id: number): Promise<Upload | undefined> {
@@ -326,102 +250,74 @@ export class MemStorage implements IStorage {
 
   // Discussion operations
   async createDiscussion(insertDiscussion: InsertDiscussion): Promise<Discussion> {
-    const id = this.currentDiscussionId++;
-    const discussion: Discussion = {
-      id,
-      userId: insertDiscussion.userId ?? 0,
-      subject: insertDiscussion.subject ?? null,
-      content: insertDiscussion.content,
+    const [discussion] = await db.insert(discussions).values({
+      ...insertDiscussion,
       likes: 0,
       helpfulVotes: 0,
-      createdAt: new Date(),
-    };
-    this.discussions.set(id, discussion);
+    }).returning();
     return discussion;
   }
 
   async getDiscussion(id: number): Promise<Discussion | undefined> {
-    return this.discussions.get(id);
+    const [discussion] = await db.select().from(discussions).where(eq(discussions.id, id)).limit(1);
+    return discussion;
   }
 
   async getAllDiscussions(): Promise<Discussion[]> {
-    return Array.from(this.discussions.values()).sort((a, b) => 
-      (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0)
-    );
+    return await db.select().from(discussions).orderBy(desc(discussions.createdAt));
   }
 
   async getDiscussionsByUser(userId: number): Promise<Discussion[]> {
-    return Array.from(this.discussions.values())
-      .filter(discussion => discussion.userId === userId)
-      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+    return await db.select().from(discussions).where(eq(discussions.userId, userId)).orderBy(desc(discussions.createdAt));
   }
 
   async updateDiscussion(id: number, updates: Partial<Discussion>): Promise<Discussion | undefined> {
-    const discussion = this.discussions.get(id);
-    if (!discussion) return undefined;
-    const updatedDiscussion = { ...discussion, ...updates };
-    this.discussions.set(id, updatedDiscussion);
-    return updatedDiscussion;
+    const [discussion] = await db.update(discussions).set(updates).where(eq(discussions.id, id)).returning();
+    return discussion;
   }
 
   async deleteDiscussion(id: number): Promise<void> {
-    this.discussions.delete(id);
+    await db.delete(discussions).where(eq(discussions.id, id));
   }
 
   async likeDiscussion(id: number): Promise<Discussion | undefined> {
-    const discussion = this.discussions.get(id);
+    const discussion = await this.getDiscussion(id);
     if (!discussion) return undefined;
     return this.updateDiscussion(id, { likes: (discussion.likes || 0) + 1 });
   }
 
   // Announcement operations
   async createAnnouncement(insertAnnouncement: InsertAnnouncement): Promise<Announcement> {
-    const id = this.currentAnnouncementId++;
-    const announcement: Announcement = {
-      id,
-      userId: insertAnnouncement.userId ?? 0,
-      title: insertAnnouncement.title,
-      content: insertAnnouncement.content,
+    const [announcement] = await db.insert(announcements).values({
+      ...insertAnnouncement,
       isApproved: false,
       isPinned: false,
-      createdAt: new Date(),
-    };
-    this.announcements.set(id, announcement);
+    }).returning();
     return announcement;
   }
 
   async getAnnouncement(id: number): Promise<Announcement | undefined> {
-    return this.announcements.get(id);
+    const [announcement] = await db.select().from(announcements).where(eq(announcements.id, id)).limit(1);
+    return announcement;
   }
 
   async getAllAnnouncements(): Promise<Announcement[]> {
-    return Array.from(this.announcements.values()).sort((a, b) => {
-      if (a.isPinned && !b.isPinned) return -1;
-      if (!a.isPinned && b.isPinned) return 1;
-      return (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0);
-    });
+    return await db.select().from(announcements).orderBy(desc(announcements.isPinned), desc(announcements.createdAt));
   }
 
   async getApprovedAnnouncements(): Promise<Announcement[]> {
-    return Array.from(this.announcements.values())
-      .filter(announcement => announcement.isApproved)
-      .sort((a, b) => {
-        if (a.isPinned && !b.isPinned) return -1;
-        if (!a.isPinned && b.isPinned) return 1;
-        return (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0);
-      });
+    return await db.select().from(announcements)
+      .where(eq(announcements.isApproved, true))
+      .orderBy(desc(announcements.isPinned), desc(announcements.createdAt));
   }
 
   async updateAnnouncement(id: number, updates: Partial<Announcement>): Promise<Announcement | undefined> {
-    const announcement = this.announcements.get(id);
-    if (!announcement) return undefined;
-    const updatedAnnouncement = { ...announcement, ...updates };
-    this.announcements.set(id, updatedAnnouncement);
-    return updatedAnnouncement;
+    const [announcement] = await db.update(announcements).set(updates).where(eq(announcements.id, id)).returning();
+    return announcement;
   }
 
   async deleteAnnouncement(id: number): Promise<void> {
-    this.announcements.delete(id);
+    await db.delete(announcements).where(eq(announcements.id, id));
   }
 
   async approveAnnouncement(id: number): Promise<Announcement | undefined> {
@@ -430,57 +326,38 @@ export class MemStorage implements IStorage {
 
   // Solution operations
   async createSolution(insertSolution: InsertSolution): Promise<Solution> {
-    const id = this.currentSolutionId++;
-    const solution: Solution = {
-      id,
-      userId: insertSolution.userId ?? 0,
-      subject: insertSolution.subject,
-      solutionType: insertSolution.solutionType,
-      title: insertSolution.title,
-      description: insertSolution.description ?? null,
-      fileUrl: insertSolution.fileUrl ?? null,
-      textContent: insertSolution.textContent ?? null,
-      externalLink: insertSolution.externalLink ?? null,
+    const [solution] = await db.insert(solutions).values({
+      ...insertSolution,
       helpfulVotes: 0,
       isApproved: false,
-      createdAt: new Date(),
-    };
-    this.solutions.set(id, solution);
+    }).returning();
     return solution;
   }
 
   async getSolution(id: number): Promise<Solution | undefined> {
-    return this.solutions.get(id);
+    const [solution] = await db.select().from(solutions).where(eq(solutions.id, id)).limit(1);
+    return solution;
   }
 
   async getAllSolutions(): Promise<Solution[]> {
-    return Array.from(this.solutions.values()).sort((a, b) => 
-      (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0)
-    );
+    return await db.select().from(solutions).orderBy(desc(solutions.createdAt));
   }
 
   async getSolutionsByUser(userId: number): Promise<Solution[]> {
-    return Array.from(this.solutions.values())
-      .filter(solution => solution.userId === userId)
-      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+    return await db.select().from(solutions).where(eq(solutions.userId, userId)).orderBy(desc(solutions.createdAt));
   }
 
   async getSolutionsBySubject(subject: string): Promise<Solution[]> {
-    return Array.from(this.solutions.values())
-      .filter(solution => solution.subject === subject)
-      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+    return await db.select().from(solutions).where(eq(solutions.subject, subject)).orderBy(desc(solutions.createdAt));
   }
 
   async updateSolution(id: number, updates: Partial<Solution>): Promise<Solution | undefined> {
-    const solution = this.solutions.get(id);
-    if (!solution) return undefined;
-    const updatedSolution = { ...solution, ...updates };
-    this.solutions.set(id, updatedSolution);
-    return updatedSolution;
+    const [solution] = await db.update(solutions).set(updates).where(eq(solutions.id, id)).returning();
+    return solution;
   }
 
   async deleteSolution(id: number): Promise<void> {
-    this.solutions.delete(id);
+    await db.delete(solutions).where(eq(solutions.id, id));
   }
 
   async approveSolution(id: number): Promise<Solution | undefined> {
@@ -488,36 +365,24 @@ export class MemStorage implements IStorage {
   }
 
   async voteSolution(id: number): Promise<Solution | undefined> {
-    const solution = this.solutions.get(id);
+    const solution = await this.getSolution(id);
     if (!solution) return undefined;
     return this.updateSolution(id, { helpfulVotes: (solution.helpfulVotes || 0) + 1 });
   }
 
   // Badge operations
   async createBadge(insertBadge: InsertBadge): Promise<Badge> {
-    const id = this.currentBadgeId++;
-    const badge: Badge = {
-      id,
-      userId: insertBadge.userId ?? 0,
-      badgeType: insertBadge.badgeType,
-      earnedFor: insertBadge.earnedFor ?? null,
-      createdAt: new Date(),
-    };
-    this.badges.set(id, badge);
+    const [badge] = await db.insert(badges).values(insertBadge).returning();
     return badge;
   }
 
   async getBadgesByUser(userId: number): Promise<Badge[]> {
-    return Array.from(this.badges.values())
-      .filter(badge => badge.userId === userId)
-      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+    return await db.select().from(badges).where(eq(badges.userId, userId)).orderBy(desc(badges.createdAt));
   }
 
   async getAllBadges(): Promise<Badge[]> {
-    return Array.from(this.badges.values()).sort((a, b) => 
-      (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0)
-    );
+    return await db.select().from(badges).orderBy(desc(badges.createdAt));
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
